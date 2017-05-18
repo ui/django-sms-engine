@@ -21,8 +21,8 @@ class BaseSMSBackend:
 class TwilioBackend(BaseSMSBackend):
 
     def send_message(self):
-        client = Client(settings.twilio_sid,
-                        settings.twilio_auth_token)
+        client = Client(settings.TWILIO_ACCOUNT_NUMBER,
+                        settings.TWILIO_AUTH_TOKEN)
 
         client.api.account.messages.create(from_=settings.TWILIO_FROM_NUMBER,
                                            to=self.to,
