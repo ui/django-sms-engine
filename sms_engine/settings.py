@@ -1,5 +1,3 @@
-import warnings
-
 from django.conf import settings
 
 
@@ -13,7 +11,7 @@ def get_available_backends():
     if backends:
         return backends
 
-    backends['default'] = 'sms_engine.backends.SMSBackEnd'
+    backends['default'] = 'sms_engine.backends.TwilioBackend'
 
     return backends
 
@@ -33,4 +31,4 @@ def get_default_priority():
 
 
 def get_log_level():
-    return get_config().get('LOG_LEVEL', 2)
+    return get_config().get('LOG_LEVEL', 1)

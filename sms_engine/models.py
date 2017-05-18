@@ -4,7 +4,8 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from .compat import text_type
+from .compat import text_type, import_attribute
+from .settings import get_log_level, get_backend
 
 
 PRIORITY = namedtuple('PRIORITY', 'low medium high now')._make(range(4))
@@ -34,12 +35,49 @@ class SMS(models.Model):
                                                 blank=True, null=True)
     scheduled_time = models.DateTimeField(_('The scheduled sending time'),
                                           blank=True, null=True, db_index=True)
+    backend_alias = models.CharField(_('Backend alias'), blank=True, default='',
+                                     max_length=64)
 
     class Meta:
         app_label = 'sms_engine'
 
     def __str__(self):
         return u'%s' % self.to
+
+    def dispatch(self, log_level=None, disconnect_after_delivery=True):
+        """
+        Method that send out the sms
+        """
+
+        if log_level is None:
+            log_level = get_log_level()
+
+        backend_str = get_backend(self.backend_alias)
+        backend = import_attribute(backend_str)(self)
+        try:
+            backend.send_message()
+
+            message = ''
+            status = STATUS.sent
+            exception_type = ''
+        except Exception as e:
+            message = e
+            status = STATUS.failed
+            exception_type = type(e).__name__
+
+        self.status = status
+        self.save(update_fields=['status'])
+
+        # If log level is 0, log nothing, 1 logs only sending failures
+        # and 2 means log both successes and failures
+        if log_level == 1 and status == STATUS.failed:
+            self.logs.create(status=status, message=message,
+                             exception_type=exception_type)
+        elif log_level == 2:
+            self.logs.create(status=status, message=message,
+                             exception_type=exception_type)
+
+        return status
 
 
 @python_2_unicode_compatible
