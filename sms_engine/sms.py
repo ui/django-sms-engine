@@ -13,7 +13,7 @@ def create(recipient=None, message="", scheduled_time=None, priority=None,
 
     sms = SMS(
         to=recipient, message=message, scheduled_time=scheduled_time,
-        status=status, priority=priority
+        status=status, priority=priority, backend_alias=backend
     )
 
     if commit:

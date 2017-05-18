@@ -20,7 +20,9 @@ def get_config():
     """
     Returns SMS Engines's configuration in dictionary format. e.g:
     SMS_ENGINES = {
-        'BATCH_SIZE': 1000
+        'BACKENDS': {
+            'twilio': sms_engine.backends.TwilioBackend
+        }
     }
     """
     return getattr(settings, 'SMS_ENGINE', {})
@@ -31,4 +33,4 @@ def get_default_priority():
 
 
 def get_log_level():
-    return get_config().get('LOG_LEVEL', 1)
+    return get_config().get('LOG_LEVEL', 2)
