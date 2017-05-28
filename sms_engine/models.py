@@ -18,25 +18,26 @@ class SMS(models.Model):
         A model to hold SMS information
     """
 
-    PRIORITY_CHOICES = [(PRIORITY.low, _("low")), (PRIORITY.medium, _("medium")),
-                        (PRIORITY.high, _("high")), (PRIORITY.now, _("now"))]
-    STATUS_CHOICES = [(STATUS.sent, _("sent")), (STATUS.failed, _("failed")),
-                      (STATUS.queued, _("queued"))]
+    PRIORITY = [(PRIORITY.low, _("low")), (PRIORITY.medium, _("medium")),
+                (PRIORITY.high, _("high")), (PRIORITY.now, _("now"))]
+    STATUS = [(STATUS.sent, _("sent")), (STATUS.failed, _("failed")),
+              (STATUS.queued, _("queued"))]
 
     to = models.CharField(_("The destination number"), max_length=20)
     message = models.TextField(_("Content of sms"))
     created = models.DateTimeField(auto_now_add=True)
     status = models.PositiveSmallIntegerField(
         _("Status"),
-        choices=STATUS_CHOICES, db_index=True,
+        choices=STATUS,
         blank=True, null=True)
     priority = models.PositiveSmallIntegerField(_("Priority"),
-                                                choices=PRIORITY_CHOICES,
+                                                choices=PRIORITY,
                                                 blank=True, null=True)
     scheduled_time = models.DateTimeField(_('The scheduled sending time'),
                                           blank=True, null=True, db_index=True)
     backend_alias = models.CharField(_('Backend alias'), blank=True, default='',
                                      max_length=64)
+    description = models.CharField(max_length=256, blank=True, default='')
 
     class Meta:
         app_label = 'sms_engine'
@@ -44,7 +45,7 @@ class SMS(models.Model):
     def __str__(self):
         return u'%s' % self.to
 
-    def dispatch(self, log_level=None, disconnect_after_delivery=True):
+    def dispatch(self, log_level=None):
         """
         Method that send out the sms
         """
@@ -53,9 +54,9 @@ class SMS(models.Model):
             log_level = get_log_level()
 
         backend_str = get_backend(self.backend_alias or 'default')
-        backend = import_attribute(backend_str)(self)
+        backend = import_attribute(backend_str)()
         try:
-            backend.send_message()
+            backend.send_message(self)
 
             message = ''
             status = STATUS.sent
@@ -68,7 +69,7 @@ class SMS(models.Model):
         self.status = status
         self.save(update_fields=['status'])
 
-        # If log level is 0, log nothing, 1 logs only sending failures
+        # If log level is 0, log nothing, 1 only logs failures
         # and 2 means log both successes and failures
         if log_level == 1 and status == STATUS.failed:
             self.logs.create(status=status, message=message,

@@ -1,9 +1,12 @@
+from django.db.models import Q
+from django.utils import timezone
+
 from .models import SMS, PRIORITY, STATUS
 from .settings import get_log_level, get_available_backends
 from .utils import parse_priority
 
 
-def create(recipient=None, message="", scheduled_time=None, priority=None,
+def create(to=None, message="", scheduled_time=None, priority=None,
            commit=True, backend=""):
     """
         A function to create smses from supplied keyword arguments.
@@ -12,7 +15,7 @@ def create(recipient=None, message="", scheduled_time=None, priority=None,
     status = None if priority == PRIORITY.now else STATUS.queued
 
     sms = SMS(
-        to=recipient, message=message, scheduled_time=scheduled_time,
+        to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend
     )
 
@@ -22,7 +25,7 @@ def create(recipient=None, message="", scheduled_time=None, priority=None,
     return sms
 
 
-def send(recipient=None, message="", scheduled_time=None, priority=None,
+def send(to=None, message="", scheduled_time=None, priority=None,
          commit=True, backend="", log_level=None):
 
     priority = parse_priority(priority)
@@ -36,10 +39,15 @@ def send(recipient=None, message="", scheduled_time=None, priority=None,
     if backend and backend not in get_available_backends().keys():
         raise ValueError('%s is not a valid backend alias' % backend)
 
-    sms = create(recipient, message, scheduled_time,
+    sms = create(to, message, scheduled_time,
                  priority, commit, backend)
 
     if priority == PRIORITY.now:
         sms.dispatch(log_level=log_level)
 
     return sms
+
+
+def get_queued():
+    return SMS.objects.filter(status=STATUS.queued) \
+              .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))
