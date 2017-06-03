@@ -19,7 +19,7 @@ def get_available_backends():
 def get_config():
     """
     Returns SMS Engines's configuration in dictionary format. e.g:
-    SMS_ENGINES = {
+    SMS_ENGINE = {
         'BACKENDS': {
             'twilio': sms_engine.backends.TwilioBackend
         }
@@ -33,4 +33,4 @@ def get_default_priority():
 
 
 def get_log_level():
-    return get_config().get('LOG_LEVEL', 2)
+    return get_config().get('LOG_LEVEL', 1)
