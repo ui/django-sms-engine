@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.test.utils import override_settings
 
 from sms_engine import sms
 from sms_engine.models import SMS, STATUS, PRIORITY
@@ -8,16 +7,13 @@ from sms_engine.settings import get_backend, get_available_backends
 
 class BackendTest(TestCase):
 
-	dummy_backend = {'BACKENDS': {'twilio': 'sms_engine.backends.TwilioBackend'}}
-
-	@override_settings(SMS_ENGINE=dummy_backend)
 	def test_email_backend(self):
 		"""
         Ensure that email backend properly queue email messages.
         """
-		sms.send(to="+6285819651345", message="Test")
+		sms.send(to="+62800000000001", message="Test")
 		sms_ = SMS.objects.latest('id')
-		self.assertEqual(sms_.to, '+6285819651345')
+		self.assertEqual(sms_.to, '+62800000000001')
 		self.assertEqual(sms_.status, STATUS.queued)
 		self.assertEqual(sms_.priority, PRIORITY.medium)
 

@@ -22,6 +22,9 @@ def create(to=None, message="", scheduled_time=None, priority=None,
     priority = parse_priority(priority)
     status = None if priority == PRIORITY.now else STATUS.queued
 
+    if backend and backend not in get_available_backends().keys():
+        raise ValueError('%s is not a valid backend alias' % backend)
+
     sms = SMS(
         to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend
@@ -43,9 +46,6 @@ def send(to=None, message="", scheduled_time=None, priority=None,
 
     if not commit and priority == PRIORITY.now:
         raise ValueError("send_many() can't be used with priority = 'now'")
-
-    if backend and backend not in get_available_backends().keys():
-        raise ValueError('%s is not a valid backend alias' % backend)
 
     sms = create(to, message, scheduled_time,
                  priority, commit, backend)

@@ -49,7 +49,6 @@ class SMS(models.Model):
         """
         Method that send out the sms
         """
-
         if log_level is None:
             log_level = get_log_level()
 
