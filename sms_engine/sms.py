@@ -22,7 +22,7 @@ def create(to=None, message="", scheduled_time=None, priority=None,
     priority = parse_priority(priority)
     status = None if priority == PRIORITY.now else STATUS.queued
 
-    if backend and backend not in get_available_backends().keys():
+    if backend not in get_available_backends().keys():
         raise ValueError('%s is not a valid backend alias' % backend)
 
     sms = SMS(
