@@ -23,7 +23,7 @@ class BaseSMSBackend:
 class DummyBackend(BaseSMSBackend):
 
     def send_message(self, sms):
-        pass
+        return '123456789'
 
 
 class TwilioBackend(BaseSMSBackend):
@@ -32,9 +32,10 @@ class TwilioBackend(BaseSMSBackend):
         client = Client(settings.TWILIO_ACCOUNT_NUMBER,
                         settings.TWILIO_AUTH_TOKEN)
 
-        client.api.account.messages.create(from_=settings.TWILIO_FROM_NUMBER,
-                                           to=sms.to,
-                                           body=sms.message)
+        response = client.api.account.messages.create(from_=settings.TWILIO_FROM_NUMBER,
+                                                      to=sms.to,
+                                                      body=sms.message)
+        return response.sid
 
 
 class NadyneBackend(BaseSMSBackend):
@@ -53,5 +54,6 @@ class NadyneBackend(BaseSMSBackend):
             status = ET.fromstring(response.content).find('Status').text
             if status != "SENT":
                 raise SendSMSError(status)
-        else:
-            raise SendSMSError("Network Error")
+            else:
+                return ET.fromstring(response.content).find('TrxID').text
+        raise SendSMSError("Network Error")

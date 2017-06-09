@@ -38,6 +38,7 @@ class SMS(models.Model):
     backend_alias = models.CharField(_('Backend alias'), blank=True, default='',
                                      max_length=64)
     description = models.CharField(max_length=256, blank=True, default='')
+    transaction_id = models.CharField(max_length=256, blank=True, default='')
 
     class Meta:
         app_label = 'sms_engine'
@@ -52,10 +53,10 @@ class SMS(models.Model):
         if log_level is None:
             log_level = get_log_level()
 
-        backend_str = get_backend(self.backend_alias or 'default')
+        backend_str = get_backend(self.backend_alias)
         backend = import_attribute(backend_str)()
         try:
-            backend.send_message(self)
+            self.transaction_id = backend.send_message(self)
 
             message = ''
             status = STATUS.sent
@@ -66,7 +67,7 @@ class SMS(models.Model):
             exception_type = type(e).__name__
 
         self.status = status
-        self.save(update_fields=['status'])
+        self.save()
 
         # If log level is 0, log nothing, 1 only logs failures
         # and 2 means log both successes and failures
