@@ -22,7 +22,8 @@ class BackendTest(TestCase):
 		self.assertEqual(get_available_backends(), {
 			'dummy': 'sms_engine.backends.DummyBackend',
 			'twilio': 'sms_engine.backends.TwilioBackend',
-			'nadyne': 'sms_engine.backends.NadyneBackend'
+			'nadyne': 'sms_engine.backends.NadyneBackend',
+			'error': 'sms_engine.backends.RaiseExceptionBackend',
 		})
 
 		with self.settings(SMS_ENGINE={}):
