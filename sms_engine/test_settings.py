@@ -12,7 +12,7 @@ SMS_ENGINE = {
     'BACKENDS': {
         'dummy': 'sms_engine.backends.DummyBackend',
         'twilio': 'sms_engine.backends.TwilioBackend',
-        'nadyne': 'sms_engine.backends.NadyneBackend'
+        'nadyne': 'sms_engine.backends.NadyneBackend',
     }
 }
 
