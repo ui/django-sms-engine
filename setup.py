@@ -15,7 +15,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     package_data={'': ['README.rst']},
-    install_requires=['django>=1.8', 'requests', 'twilio==3.6.6'],
+    install_requires=['django>=1.8', 'requests', 'twilio==3.6.6', 'mock'],
     classifiers=[
         'Development Status :: 1 - Beta/Unstable',
         'Environment :: Web Environment',
