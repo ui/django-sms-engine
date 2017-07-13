@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.test.utils import override_settings
 
 from mock import patch
 
@@ -9,11 +8,8 @@ from sms_engine.sms import create as create_sms, send as send_sms
 
 class SMSTest(TestCase):
 
-	backend_settings = {'BACKENDS': {'dummy': 'sms_engine.backends.DummyBackend'}}
-
-	@override_settings(SMS_ENGINE=backend_settings)
 	def test_sms_create(self):
-		create_sms(to="+62800000000001", message="Test")
+		create_sms(to="+62800000000001", message="Test", backend='dummy')
 		sms = SMS.objects.latest('id')
 		self.assertEqual(sms.to, '+62800000000001')
 		self.assertEqual(sms.message, 'Test')

@@ -11,7 +11,7 @@ class BackendTest(TestCase):
 		"""
         Ensure that email backend properly queue email messages.
         """
-		sms.send(to="+62800000000001", message="Test")
+		sms.send(to="+62800000000001", message="Test", backend='dummy')
 		sms_ = SMS.objects.latest('id')
 		self.assertEqual(sms_.to, '+62800000000001')
 		self.assertEqual(sms_.status, STATUS.queued)
