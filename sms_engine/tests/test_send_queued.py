@@ -1,11 +1,7 @@
-import datetime
-
 from django.core.management import call_command
 from django.test import TestCase
-from django.utils.timezone import now
 
 from ..models import SMS, STATUS
-from ..sms import create as create_sms
 
 
 class CommandTest(TestCase):

@@ -4,7 +4,7 @@ from xml.etree.ElementTree import ParseError
 from django.conf import settings
 
 import requests
-from twilio.rest import Client
+from twilio.rest import TwilioRestClient
 
 from .exceptions import SendSMSError
 
@@ -37,8 +37,8 @@ class RaiseExceptionBackend(BaseSMSBackend):
 class TwilioBackend(BaseSMSBackend):
 
     def send_message(self, sms):
-        client = Client(settings.TWILIO_ACCOUNT_NUMBER,
-                        settings.TWILIO_AUTH_TOKEN)
+        client = TwilioRestClient(settings.TWILIO_ACCOUNT_NUMBER,
+                                  settings.TWILIO_AUTH_TOKEN)
 
         response = client.api.account.messages.create(from_=settings.TWILIO_FROM_NUMBER,
                                                       to=sms.to,
