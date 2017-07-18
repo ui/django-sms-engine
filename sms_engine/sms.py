@@ -14,7 +14,7 @@ from .utils import parse_priority, split_smss
 logger = setup_loghandlers("INFO")
 
 
-def create(to=None, message="", scheduled_time=None, priority=None,
+def create(to=None, message="", description="", scheduled_time=None, priority=None,
            commit=True, backend=""):
     """
         A function to create smses from supplied keyword arguments.
@@ -27,7 +27,8 @@ def create(to=None, message="", scheduled_time=None, priority=None,
 
     sms = SMS(
         to=to, message=message, scheduled_time=scheduled_time,
-        status=status, priority=priority, backend_alias=backend
+        status=status, priority=priority, backend_alias=backend,
+        description=description
     )
 
     if commit:
@@ -36,7 +37,7 @@ def create(to=None, message="", scheduled_time=None, priority=None,
     return sms
 
 
-def send(to=None, message="", scheduled_time=None, priority=None,
+def send(to=None, message="", description="", scheduled_time=None, priority=None,
          commit=True, backend="", log_level=None):
 
     priority = parse_priority(priority)
@@ -47,7 +48,7 @@ def send(to=None, message="", scheduled_time=None, priority=None,
     if not commit and priority == PRIORITY.now:
         raise ValueError("send_many() can't be used with priority = 'now'")
 
-    sms = create(to, message, scheduled_time,
+    sms = create(to, message, description, scheduled_time,
                  priority, commit, backend)
 
     if priority == PRIORITY.now:
