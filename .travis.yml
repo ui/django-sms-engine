@@ -10,7 +10,6 @@ env:
   - DJANGO=1.8
   - DJANGO=1.9
   - DJANGO=1.10
-  - TWILIO=3.6.6
 
 matrix:
   exclude:
@@ -20,7 +19,7 @@ matrix:
       env: DJANGO=1.10
 
 install:
-  - pip install "Django>=$DJANGO,<${DJANGO}.99" requests twilio==$TWILIO mock
+  - pip install "Django>=$DJANGO,<${DJANGO}.99" requests twilio==3.6.6 mock
 
 script:
 - "`which django-admin.py` test sms_engine --settings=sms_engine.test_settings --pythonpath=."

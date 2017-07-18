@@ -1,16 +1,6 @@
 from django.test import TestCase
 
-from sms_engine.backends import BaseSMSBackend
-from sms_engine.exceptions import SendSMSError
 from sms_engine.models import SMS, STATUS
-
-
-class RaiseExceptionBackend(BaseSMSBackend):
-    '''
-        The utility of this backend only to raise exception error
-    '''
-    def send_message(self, sms):
-        raise SendSMSError('SMS sending error')
 
 
 class ModelsTest(TestCase):
@@ -34,21 +24,15 @@ class ModelsTest(TestCase):
         self.assertEqual(sms.status, STATUS.sent)
         self.assertFalse(sms.logs.exists())
 
-        backend_settings = {
-            'BACKENDS': {
-                'exception': 'sms_engine.tests.test_models.RaiseExceptionBackend'
-            }
-        }
-
         SMS.objects.all().delete()
-        with self.settings(SMS_ENGINE=backend_settings):
-            sms = SMS.objects.create(
-                to='+6280000000000', message='test', backend_alias='exception'
-            )
-            sms.dispatch()
 
-            self.assertEqual(sms.status, STATUS.failed)
+        sms = SMS.objects.create(
+            to='+6280000000000', message='test', backend_alias='error'
+        )
+        sms.dispatch()
 
-            log = sms.logs.first()
-            self.assertEqual(log.message, 'SMS sending error')
-            self.assertEqual(log.exception_type, 'SendSMSError')
+        self.assertEqual(sms.status, STATUS.failed)
+
+        log = sms.logs.first()
+        self.assertEqual(log.message, 'SMS sending error')
+        self.assertEqual(log.exception_type, 'SendSMSError')

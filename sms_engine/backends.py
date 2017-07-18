@@ -26,6 +26,14 @@ class DummyBackend(BaseSMSBackend):
         return '123456789'
 
 
+class RaiseExceptionBackend(BaseSMSBackend):
+    '''
+        The utility of this backend only to raise exception error
+    '''
+    def send_message(self, sms):
+        raise SendSMSError('SMS sending error')
+
+
 class TwilioBackend(BaseSMSBackend):
 
     def send_message(self, sms):

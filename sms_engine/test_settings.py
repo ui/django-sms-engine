@@ -13,6 +13,7 @@ SMS_ENGINE = {
         'dummy': 'sms_engine.backends.DummyBackend',
         'twilio': 'sms_engine.backends.TwilioBackend',
         'nadyne': 'sms_engine.backends.NadyneBackend',
+        'error': 'sms_engine.backends.RaiseExceptionBackend'
     }
 }
 
