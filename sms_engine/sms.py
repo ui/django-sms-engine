@@ -1,5 +1,6 @@
 import sys
 from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
 
 from django.db import connection as db_connection
 from django.db.models import Q
@@ -101,7 +102,7 @@ def send_queued(processes=1, log_level=None):
     return (total_sent, total_failed)
 
 
-def _send_bulk(smss, uses_multiprocessing=True, log_level=None):
+def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     # Multiprocessing does not play well with database connection
     # Fix: Close connections on forking process
     # https://groups.google.com/forum/#!topic/django-users/eCAIY9DAfG0
@@ -111,21 +112,34 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None):
     if log_level is None:
         log_level = get_log_level()
 
-    sent_count, failed_count = 0, 0
+    sent_smses = []
+    failed_smses = []
     sms_count = len(smss)
+
     logger.info('Process started, sending %s emails' % sms_count)
 
-    try:
-        for sms in smss:
+    def send(sms):
+        try:
             status = sms.dispatch(log_level=log_level)
             if status == STATUS.sent:
-                sent_count += 1
+                sent_smses.append(sms)
                 logger.debug('Successfully sent sms #%d' % sms.id)
             else:
-                failed_count += 1
+                failed_smses.append(sms)
                 logger.debug('Failed to send sms #%d' % sms.id)
-    except Exception as e:
-        logger.error(e, exc_info=sys.exc_info(), extra={'status_code': 500})
+        except:
+            logger.debug('Failed to send email #%d' % sms.id)
+            failed_smses.append(sms)
+
+    number_of_threads = min(threads, sms_count)
+    pool = ThreadPool(number_of_threads)
+
+    pool.map(send, smss)
+    pool.close()
+    pool.join()
+
+    sent_count = len(sent_smses)
+    failed_count = len(failed_smses)
 
     logger.info('Process finished, %s attempted, %s sent, %s failed' %
                 (sms_count, sent_count, failed_count))
