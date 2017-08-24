@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .logutils import setup_loghandlers
-from .models import SMS, PRIORITY, STATUS
+from .models import SMS, PRIORITY, STATUS, Log
 from .settings import get_log_level, get_available_backends
 from .utils import parse_priority, split_smss
 
@@ -120,16 +120,12 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
 
     def send(sms):
         try:
-            status = sms.dispatch(log_level=log_level)
-            if status == STATUS.sent:
-                sent_smses.append(sms)
-                logger.debug('Successfully sent sms #%d' % sms.id)
-            else:
-                failed_smses.append(sms)
-                logger.debug('Failed to send sms #%d' % sms.id)
-        except:
-            logger.debug('Failed to send email #%d' % sms.id)
-            failed_smses.append(sms)
+            sms.dispatch(log_level=log_level, commit=False)
+            sent_smses.append(sms)
+            logger.debug('Successfully sent sms #%d' % sms.id)
+        except Exception as e:
+            logger.debug('Failed to send sms #%d' % sms.id)
+            failed_smses.append((sms, e))
 
     number_of_threads = min(threads, sms_count)
     pool = ThreadPool(number_of_threads)
@@ -138,9 +134,35 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     pool.close()
     pool.join()
 
+    # update statuses of sent and failed_smses emails
+    sms_ids = [sms.id for sms in sent_smses]
+    SMS.objects.filter(id__in=sms_ids).update(status=STATUS.sent)
+
+    sms_ids = [sms.id for (sms, e) in failed_smses]
+    SMS.objects.filter(id__in=sms_ids).update(status=STATUS.failed)
+
+    if log_level >= 1:
+        logs = []
+        for (sms, exception) in failed_smses:
+            logs.append(
+                Log(sms=sms, status=STATUS.failed,
+                    message=str(exception),
+                    exception_type=type(exception).__name__)
+            )
+
+        if logs:
+            Log.objects.bulk_create(logs)
+
+    if log_level == 2:
+        logs = []
+        for sms in sent_smses:
+            logs.append(Log(sms=sms, status=STATUS.sent))
+
+        if logs:
+            Log.objects.bulk_create(logs)
+
     sent_count = len(sent_smses)
     failed_count = len(failed_smses)
-
     logger.info('Process finished, %s attempted, %s sent, %s failed' %
                 (sms_count, sent_count, failed_count))
 
