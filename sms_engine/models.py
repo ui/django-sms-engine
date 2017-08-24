@@ -46,7 +46,7 @@ class SMS(models.Model):
     def __str__(self):
         return u'%s' % self.to
 
-    def dispatch(self, log_level=None):
+    def dispatch(self, log_level=None, commit=True):
         """
         Method that send out the sms
         """
@@ -66,17 +66,21 @@ class SMS(models.Model):
             status = STATUS.failed
             exception_type = type(e).__name__
 
-        self.status = status
-        self.save()
+            if not commit:
+                raise
 
-        # If log level is 0, log nothing, 1 only logs failures
-        # and 2 means log both successes and failures
-        if log_level == 1 and status == STATUS.failed:
-            self.logs.create(status=status, message=message,
-                             exception_type=exception_type)
-        elif log_level == 2:
-            self.logs.create(status=status, message=message,
-                             exception_type=exception_type)
+        if commit:
+            self.status = status
+            self.save()
+
+            # If log level is 0, log nothing, 1 only logs failures
+            # and 2 means log both successes and failures
+            if log_level == 1 and status == STATUS.failed:
+                self.logs.create(status=status, message=message,
+                                 exception_type=exception_type)
+            elif log_level == 2:
+                self.logs.create(status=status, message=message,
+                                 exception_type=exception_type)
 
         return status
 

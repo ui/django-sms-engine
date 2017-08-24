@@ -2,8 +2,8 @@ from django.test import TestCase
 
 from mock import patch
 
-from sms_engine.models import SMS, PRIORITY, STATUS
-from sms_engine.sms import create as create_sms, send as send_sms
+from sms_engine.models import SMS, PRIORITY, STATUS, Log
+from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk
 
 
 class SMSTest(TestCase):
@@ -38,3 +38,32 @@ class SMSTest(TestCase):
         self.assertEqual(sms.to, '+62800000000002')
         # dispatch method should be called if priority is `now`
         self.assertEqual(mock.call_count, 1)
+
+    def test_send_bulk_sms(self):
+        for i in range(0, 30):
+            # Create 6 error smss
+            if i % 5 == 0:
+                SMS.objects.create(
+                    to='+6280000000000', message='test', backend_alias='error'
+                )
+            else:
+                SMS.objects.create(
+                    to='+6280000000000', message='test', backend_alias='dummy'
+                )
+
+        _send_bulk(SMS.objects.all(), log_level=2)
+
+        self.assertEqual(
+            SMS.objects.filter(to='+6280000000000', status=STATUS.sent).count(), 24
+        )
+        self.assertEqual(
+            SMS.objects.filter(to='+6280000000000', status=STATUS.failed).count(), 6
+        )
+
+        # make sure logs for failed smss created properly
+        self.assertEqual(
+            Log.objects.filter(status=STATUS.failed).count(), 6
+        )
+        self.assertEqual(
+            Log.objects.filter(status=STATUS.sent).count(), 24
+        )
