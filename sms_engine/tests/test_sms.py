@@ -40,9 +40,6 @@ class SMSTest(TestCase):
         self.assertEqual(mock.call_count, 1)
 
     def test_send_bulk_sms(self):
-        SMS.objects.all().delete()
-        Log.objects.all().delete()
-
         for i in range(0, 30):
             # Create 6 error smss
             if i % 5 == 0:
@@ -63,7 +60,7 @@ class SMSTest(TestCase):
             SMS.objects.filter(to='+6280000000000', status=STATUS.failed).count(), 6
         )
 
-        # make sure logs for failed smss are created properly
+        # make sure logs for failed smss created properly
         self.assertEqual(
             Log.objects.filter(status=STATUS.failed).count(), 6
         )
