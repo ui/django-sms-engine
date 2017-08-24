@@ -60,17 +60,18 @@ class SMS(models.Model):
 
             message = ''
             status = STATUS.sent
+            self.status = status
             exception_type = ''
         except Exception as e:
             message = e
             status = STATUS.failed
+            self.status = status
             exception_type = type(e).__name__
 
             if not commit:
                 raise
 
         if commit:
-            self.status = status
             self.save()
 
             # If log level is 0, log nothing, 1 only logs failures
