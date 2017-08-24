@@ -136,11 +136,11 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     pool.terminate()
 
     # update statuses of sent and failed_smses emails
-    sms_ids = [sms.id for sms in sent_smses]
-    SMS.objects.filter(id__in=sms_ids).update(status=STATUS.sent)
+    for sms in sent_smses:
+        sms.save()
 
-    sms_ids = [sms.id for (sms, e) in failed_smses]
-    SMS.objects.filter(id__in=sms_ids).update(status=STATUS.failed)
+    for (sms, _) in failed_smses:
+        sms.save()
 
     if log_level >= 1:
         logs = []
