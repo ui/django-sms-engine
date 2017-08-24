@@ -133,6 +133,7 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     pool.map(send, smss)
     pool.close()
     pool.join()
+    pool.terminate()
 
     # update statuses of sent and failed_smses emails
     sms_ids = [sms.id for sms in sent_smses]
