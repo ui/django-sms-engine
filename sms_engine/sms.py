@@ -60,7 +60,7 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
 
 def get_queued():
     return SMS.objects.filter(status=STATUS.queued) \
-              .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))
+              .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))[:50]
 
 
 def send_queued(processes=1, log_level=None):
@@ -79,7 +79,7 @@ def send_queued(processes=1, log_level=None):
 
     if queued_smss:
 
-        # Don't use more processes than number of emails
+        # Don't use more processes than number of sms
         if total_sms < processes:
             processes = total_sms
 
@@ -93,7 +93,7 @@ def send_queued(processes=1, log_level=None):
             results = pool.map(_send_bulk, sms_lists)
             total_sent = sum([result[0] for result in results])
             total_failed = sum([result[1] for result in results])
-    message = '%s emails attempted, %s sent, %s failed' % (
+    message = '%s sms attempted, %s sent, %s failed' % (
         total_sms,
         total_sent,
         total_failed
@@ -116,7 +116,7 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     failed_smses = []
     sms_count = len(smss)
 
-    logger.info('Process started, sending %s emails' % sms_count)
+    logger.info('Process started, sending %s sms' % sms_count)
 
     def send(sms):
         try:
@@ -135,7 +135,7 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     pool.join()
     pool.terminate()
 
-    # update statuses of sent and failed_smses emails
+    # update statuses of sent and failed_smses
     for sms in sent_smses:
         sms.save()
 

@@ -13,10 +13,22 @@ class CommandTest(TestCase):
         # Make sure that send_queued_sms with empty queue does not raise error
         call_command('send_queued_sms')
 
-        SMS.objects.create(to='+6280000000000', status=STATUS.queued, backend_alias='dummy')
+        # Make sure bulk sms runs successfully
+        smses = []
+        for i in range(0, 300):
+            # create 3 failed sms
+            if i % 100 == 0:
+                sms = SMS(to='+6280000000000', status=STATUS.queued, backend_alias='error')
+            else:
+                sms = SMS(to='+6280000000000', status=STATUS.queued, backend_alias='dummy')
+            smses.append(sms)
+
+        SMS.objects.bulk_create(smses)
+
         call_command('send_queued_sms')
 
-        self.assertEqual(SMS.objects.filter(status=STATUS.sent).count(), 1)
+        self.assertEqual(SMS.objects.filter(status=STATUS.sent).count(), 297)
+        self.assertEqual(SMS.objects.filter(status=STATUS.failed).count(), 3)
 
     def test_successful_deliveries_logging(self):
         """
