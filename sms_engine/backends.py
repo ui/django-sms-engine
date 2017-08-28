@@ -1,11 +1,3 @@
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import ParseError
-
-from django.conf import settings
-
-import requests
-from twilio.rest import TwilioRestClient
-
 from .exceptions import SendSMSError
 
 
@@ -23,45 +15,16 @@ class BaseSMSBackend:
 class DummyBackend(BaseSMSBackend):
 
     def send_message(self, sms):
-        return '123456789'
+        response = {
+            'transaction_id': '123456789',
+            'status': 'sent'
+        }
+        return response
 
 
-class RaiseExceptionBackend(BaseSMSBackend):
+class ErrorBackend1(BaseSMSBackend):
     '''
         The utility of this backend only to raise exception error
     '''
     def send_message(self, sms):
         raise SendSMSError('SMS sending error')
-
-
-class TwilioBackend(BaseSMSBackend):
-
-    def send_message(self, sms):
-        client = TwilioRestClient(settings.TWILIO_ACCOUNT_NUMBER,
-                                  settings.TWILIO_AUTH_TOKEN)
-
-        response = client.api.account.messages.create(from_=settings.TWILIO_FROM_NUMBER,
-                                                      to=sms.to,
-                                                      body=sms.message)
-        return response.sid
-
-
-class NadyneBackend(BaseSMSBackend):
-
-    def send_message(self, sms):
-        params = {
-            'user': settings.NADYNE_USER,
-            'pwd': settings.NADYNE_PASSWORD,
-            'sender': settings.NADYNE_SENDER,
-            'msisdn': sms.to,
-            'message': sms.message,
-            'description': sms.description
-        }
-        response = requests.get("http://apitoken.nadyne.com/sms.php", params=params)
-        if response.status_code == 200:
-            status = ET.fromstring(response.content).find('Status').text
-            if status != "SENT":
-                raise SendSMSError(status)
-            else:
-                return ET.fromstring(response.content).find('TrxID').text
-        raise SendSMSError("Network Error")
