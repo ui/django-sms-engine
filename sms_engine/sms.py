@@ -1,7 +1,7 @@
-import sys
 from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
 
+from django.conf import settings
 from django.db import connection as db_connection
 from django.db.models import Q
 from django.utils import timezone
@@ -59,8 +59,9 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
 
 
 def get_queued():
+    limit = settings.SMS_ENGINE.get('QUEUED_LIMIT', 50)
     return SMS.objects.filter(status=STATUS.queued) \
-              .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))[:50]
+              .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))[:limit]
 
 
 def send_queued(processes=1, log_level=None):
