@@ -59,7 +59,7 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
 
 
 def get_queued():
-    limit = settings.SMS_ENGINE.get('QUEUED_LIMIT', 50)
+    limit = settings.SMS_ENGINE.get('BATCH_SIZE', 50)
     return SMS.objects.filter(status=STATUS.queued) \
               .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))[:limit]
 
