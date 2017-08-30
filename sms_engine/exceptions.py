@@ -1,3 +1,2 @@
-class SendSMSError(Exception):
-
+class DeliveryError(Exception):
     pass
