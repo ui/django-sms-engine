@@ -14,6 +14,7 @@ class ModelsTest(TestCase):
         self.assertEqual(sms.to, '+6280000000000')
         self.assertEqual(sms.status, STATUS.sent)
         self.assertEqual(sms.logs.first().status, STATUS.sent)
+        self.assertEqual(sms.response, unicode({'status': 'sent', 'transaction_id': '123456789'}))
 
         SMS.objects.all().delete()
 

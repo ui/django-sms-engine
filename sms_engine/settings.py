@@ -11,7 +11,7 @@ def get_available_backends():
     if backends:
         return backends
 
-    backends['default'] = 'sms_engine.backends.TwilioBackend'
+    backends['default'] = 'sms_engine.backends.DummyBackend'
 
     return backends
 

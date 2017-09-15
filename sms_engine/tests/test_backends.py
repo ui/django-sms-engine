@@ -18,17 +18,12 @@ class BackendTest(TestCase):
         self.assertEqual(sms_.priority, PRIORITY.medium)
 
     def test_email_backend_settings(self):
-        self.assertEqual(get_backend('nadyne'), 'sms_engine.backends.NadyneBackend')
+        self.assertEqual(get_backend('dummy'), 'sms_engine.backends.DummyBackend')
         self.assertEqual(get_available_backends(), {
             'dummy': 'sms_engine.backends.DummyBackend',
-            'twilio': 'sms_engine.backends.TwilioBackend',
-            'nadyne': 'sms_engine.backends.NadyneBackend',
-            'error': 'sms_engine.backends.RaiseExceptionBackend',
+            'error': 'sms_engine.backends.ErrorBackend1',
         })
 
         with self.settings(SMS_ENGINE={}):
-            # If no sms backend is set, backend should default to Twilio Backend
-            self.assertEqual(get_backend(), 'sms_engine.backends.TwilioBackend')
-
-            # if no backend is set, get_available_backends() always return twilio backend by default
-            self.assertEqual(get_available_backends(), {'default': 'sms_engine.backends.TwilioBackend'})
+            # if no backend is set, get_available_backends() always return dummy backend by default
+            self.assertEqual(get_available_backends(), {'default': 'sms_engine.backends.DummyBackend'})
