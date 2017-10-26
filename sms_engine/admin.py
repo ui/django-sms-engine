@@ -8,6 +8,7 @@ class LogInline(admin.TabularInline):
 
 
 class SMSAdmin(admin.ModelAdmin):
+    search_fields = ('to', 'description')
     inlines = [LogInline]
 
 admin.site.register(SMS, SMSAdmin)
