@@ -14,6 +14,7 @@ class ModelsTest(TestCase):
         self.assertEqual(sms.to, '+6280000000000')
         self.assertEqual(sms.status, STATUS.sent)
         self.assertEqual(sms.logs.first().status, STATUS.sent)
+        self.assertEqual(sms.response_data, "{'transaction_id': 123456, 'status': 'SENT'}")
 
         SMS.objects.all().delete()
 
@@ -35,4 +36,4 @@ class ModelsTest(TestCase):
 
         log = sms.logs.first()
         self.assertEqual(log.message, 'SMS sending error')
-        self.assertEqual(log.exception_type, 'SendSMSError')
+        self.assertEqual(log.exception_type, 'DeliveryError')

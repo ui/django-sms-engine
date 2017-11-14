@@ -1,12 +1,11 @@
 import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import ParseError
 
 from django.conf import settings
 
 import requests
 from twilio.rest import TwilioRestClient
 
-from .exceptions import SendSMSError
+from .exceptions import DeliveryError
 
 
 class BaseSMSBackend:
@@ -23,7 +22,7 @@ class BaseSMSBackend:
 class DummyBackend(BaseSMSBackend):
 
     def send_message(self, sms):
-        return '123456789'
+        return "{'transaction_id': 123456, 'status': 'SENT'}"
 
 
 class RaiseExceptionBackend(BaseSMSBackend):
@@ -31,7 +30,7 @@ class RaiseExceptionBackend(BaseSMSBackend):
         The utility of this backend only to raise exception error
     '''
     def send_message(self, sms):
-        raise SendSMSError('SMS sending error')
+        raise DeliveryError('SMS sending error')
 
 
 class TwilioBackend(BaseSMSBackend):

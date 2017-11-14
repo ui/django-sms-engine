@@ -9,7 +9,7 @@ from django.utils import timezone
 from .logutils import setup_loghandlers
 from .models import SMS, PRIORITY, STATUS, Log
 from .settings import get_log_level, get_available_backends
-from .utils import parse_priority, split_smss
+from .utils import parse_priority
 
 
 logger = setup_loghandlers("INFO")
@@ -62,45 +62,6 @@ def get_queued():
     limit = settings.SMS_ENGINE.get('BATCH_SIZE', 50)
     return SMS.objects.filter(status=STATUS.queued) \
               .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))[:limit]
-
-
-def send_queued(processes=1, log_level=None):
-    """
-    Sends out all queued smss that has scheduled_time less than now or None
-    """
-    queued_smss = get_queued()
-    total_sent, total_failed = 0, 0
-    total_sms = len(queued_smss)
-
-    logger.info('Started sending %s sms with %s processes.' %
-                (total_sms, processes))
-
-    if log_level is None:
-        log_level = get_log_level()
-
-    if queued_smss:
-
-        # Don't use more processes than number of sms
-        if total_sms < processes:
-            processes = total_sms
-
-        if processes == 1:
-            total_sent, total_failed = _send_bulk(queued_smss,
-                                                  uses_multiprocessing=False,
-                                                  log_level=log_level)
-        else:
-            sms_lists = split_smss(queued_smss, processes)
-            pool = Pool(processes)
-            results = pool.map(_send_bulk, sms_lists)
-            total_sent = sum([result[0] for result in results])
-            total_failed = sum([result[1] for result in results])
-    message = '%s sms attempted, %s sent, %s failed' % (
-        total_sms,
-        total_sent,
-        total_failed
-    )
-    logger.info(message)
-    return (total_sent, total_failed)
 
 
 def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):

@@ -38,7 +38,7 @@ class SMS(models.Model):
     backend_alias = models.CharField(_('Backend alias'), blank=True, default='',
                                      max_length=64)
     description = models.CharField(max_length=256, blank=True, default='')
-    transaction_id = models.CharField(max_length=256, blank=True, default='')
+    response_data = models.TextField(blank=True, default='')
 
     class Meta:
         app_label = 'sms_engine'
@@ -56,7 +56,7 @@ class SMS(models.Model):
         backend_str = get_backend(self.backend_alias)
         backend = import_attribute(backend_str)()
         try:
-            self.transaction_id = backend.send_message(self)
+            self.response_data = backend.send_message(self)
 
             message = ''
             status = STATUS.sent
@@ -83,7 +83,7 @@ class SMS(models.Model):
                 self.logs.create(status=status, message=message,
                                  exception_type=exception_type)
 
-        return status
+        return self.response_data
 
 
 @python_2_unicode_compatible
