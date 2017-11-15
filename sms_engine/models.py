@@ -53,9 +53,9 @@ class SMS(models.Model):
         if log_level is None:
             log_level = get_log_level()
 
-        backend_str = get_backend(self.backend_alias)
-        backend = import_attribute(backend_str)()
         try:
+            backend_str = get_backend(self.backend_alias)
+            backend = import_attribute(backend_str)()
             self.transaction_id = backend.send_message(self)
 
             message = ''
