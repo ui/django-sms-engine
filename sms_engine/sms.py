@@ -117,7 +117,6 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     failed_smses = []
     sms_count = len(smss)
 
-
     logger.info('Process started, sending %s sms' % sms_count)
 
     def send(sms):
