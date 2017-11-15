@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 
 def get_backend(alias=None):
@@ -10,7 +11,7 @@ def get_available_backends():
 
     if backends:
         if not backends.get('default'):
-            raise ValueError('default backend is required')
+            raise ImproperlyConfigured('default backend is required')
         return backends
 
     backends['default'] = 'sms_engine.backends.TwilioBackend'

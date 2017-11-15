@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
 from sms_engine import sms
@@ -39,4 +40,4 @@ class BackendTest(TestCase):
 
         # SMS_ENGINE should not work if no default backend declared
         with self.settings(SMS_ENGINE={'BACKENDS': {'dummy': 'sms_engine.backends.DummyBackend'}}):
-            self.assertRaises(ValueError, get_backend)
+            self.assertRaises(ImproperlyConfigured, get_backend)
