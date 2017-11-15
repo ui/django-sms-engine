@@ -10,6 +10,7 @@ DATABASES = {
 
 SMS_ENGINE = {
     'BACKENDS': {
+        'default': 'sms_engine.backends.DummyBackend',
         'dummy': 'sms_engine.backends.DummyBackend',
         'twilio': 'sms_engine.backends.TwilioBackend',
         'nadyne': 'sms_engine.backends.NadyneBackend',

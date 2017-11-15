@@ -20,6 +20,7 @@ class BackendTest(TestCase):
     def test_email_backend_settings(self):
         self.assertEqual(get_backend('nadyne'), 'sms_engine.backends.NadyneBackend')
         self.assertEqual(get_available_backends(), {
+            'default': 'sms_engine.backends.DummyBackend',
             'dummy': 'sms_engine.backends.DummyBackend',
             'twilio': 'sms_engine.backends.TwilioBackend',
             'nadyne': 'sms_engine.backends.NadyneBackend',
@@ -32,3 +33,10 @@ class BackendTest(TestCase):
 
             # if no backend is set, get_available_backends() always return twilio backend by default
             self.assertEqual(get_available_backends(), {'default': 'sms_engine.backends.TwilioBackend'})
+
+        # get_backend should handle empty string correctly
+        self.assertEqual(get_backend(''), 'sms_engine.backends.DummyBackend')
+
+        # SMS_ENGINE should not work if no default backend declared
+        with self.settings(SMS_ENGINE={'BACKENDS': {'dummy': 'sms_engine.backends.DummyBackend'}}):
+            self.assertRaises(ValueError, get_backend)
