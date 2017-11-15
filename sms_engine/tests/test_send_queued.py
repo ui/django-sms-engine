@@ -67,3 +67,22 @@ class CommandTest(TestCase):
                                  backend_alias='error')
         call_command('send_queued_sms', log_level=2)
         self.assertEqual(sms.logs.count(), 1)
+
+    def test_empty_backend_alias(self):
+        """
+        Empty backend alias shouldn't cause infinite loop
+        """
+
+        # Empty backend alias will point to `default` backend
+        sms = SMS.objects.create(to='+6280000000000', status=STATUS.queued)
+        call_command('send_queued_sms', log_level=0)
+        self.assertEqual(sms.logs.count(), 0)
+        sms.refresh_from_db()
+        self.assertEqual(sms.status, STATUS.sent)
+
+        # No extra logs generated
+        sms = SMS.objects.create(to='+6280000000000', status=STATUS.queued)
+        call_command('send_queued_sms', log_level=1)
+        self.assertEqual(sms.logs.count(), 0)
+        sms.refresh_from_db()
+        self.assertEqual(sms.status, STATUS.sent)
