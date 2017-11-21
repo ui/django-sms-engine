@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+from django.core.cache import cache
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -106,3 +107,39 @@ class Log(models.Model):
 
     def __str__(self):
         return text_type(self.date)
+
+
+@python_2_unicode_compatible
+class Tag(models.Model):
+
+    KEY = 'sms-tag:%s'
+
+    name = models.CharField(max_length=255, unique=True)
+    sms = models.ManyToManyField(SMS, blank=True, related_name='sms')
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def get(cls, name, create=False):
+        key = cls.KEY % (name)
+        tag = cache.get(key)
+        if tag:
+            return tag
+
+        if create:
+            tag, _ = cls.objects.get_or_create(name=name)
+        else:
+            tag = cls.objects.filter(name=name).first()
+
+        if tag:
+            cache.set(key, tag)
+
+        return tag
+
+    @classmethod
+    def assign(cls, name, sms):
+        tag = cls.get(name)
+        tag.sms.add(sms)
+        cache.set(cls.KEY % name, tag)
+        return tag

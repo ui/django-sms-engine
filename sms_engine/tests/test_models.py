@@ -1,6 +1,7 @@
+from django.core.cache import cache
 from django.test import TestCase
 
-from sms_engine.models import SMS, STATUS
+from sms_engine.models import SMS, Tag, STATUS
 
 
 class ModelsTest(TestCase):
@@ -36,3 +37,16 @@ class ModelsTest(TestCase):
         log = sms.logs.first()
         self.assertEqual(log.message, 'SMS sending error')
         self.assertEqual(log.exception_type, 'SendSMSError')
+
+    def test_tag(self):
+        self.assertIsNone(Tag.get('mytag'))
+        self.assertEqual(Tag.get('mytag', create=True), Tag.objects.last())
+
+        sms = SMS.objects.create(
+            to='+6280000000000', message='test', backend_alias='dummy'
+        )
+        tag = Tag.assign('mytag', sms)
+
+        self.assertEqual(tag.sms.all().count(), 1)
+
+        cache.delete(Tag.KEY % 'mytag')
