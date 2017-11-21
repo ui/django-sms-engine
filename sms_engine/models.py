@@ -122,11 +122,25 @@ class Tag(models.Model):
 
     @classmethod
     def get(cls, name, create=False):
-        key = cls.KEY % (name)
-        tag = cache.get(key)
+        tag = cache.get(cls.KEY % name)
         if tag:
             return tag
 
         tag = cls.objects.filter(name=name).first()
-
+        if tag:
+            cache.add(cls.KEY % (name), tag)
         return tag
+
+    def save(self, *args, **kwargs):
+        # clear cache
+        if self.pk:
+            old_name = Tag.objects.get(id=self.pk).name
+            cache.delete(Tag.KEY % (old_name))
+
+        tag = super(Tag, self).save(*args, **kwargs)
+        cache.add(Tag.KEY % self.name, tag)
+        return tag
+
+    def delete(self, *args, **kwargs):
+        super(Tag, self).delete(*args, **kwargs)
+        cache.delete(Tag.KEY % self.name)

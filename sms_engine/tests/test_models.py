@@ -41,7 +41,6 @@ class ModelsTest(TestCase):
     def test_tag(self):
         self.assertIsNone(Tag.get('mytag'))
 
-        Tag.objects.create(name='mytag')
-        self.assertEqual(Tag.get('mytag'), Tag.objects.first())
-
+        tag = Tag.objects.create(name='mytag')
+        self.assertEqual(Tag.get('mytag'), tag)
         cache.delete(Tag.KEY % 'mytag')
