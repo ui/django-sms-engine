@@ -40,13 +40,8 @@ class ModelsTest(TestCase):
 
     def test_tag(self):
         self.assertIsNone(Tag.get('mytag'))
-        self.assertEqual(Tag.get('mytag', create=True), Tag.objects.last())
 
-        sms = SMS.objects.create(
-            to='+6280000000000', message='test', backend_alias='dummy'
-        )
-        tag = Tag.assign('mytag', sms)
-
-        self.assertEqual(tag.sms.all().count(), 1)
+        Tag.objects.create(name='mytag')
+        self.assertEqual(Tag.get('mytag'), Tag.objects.first())
 
         cache.delete(Tag.KEY % 'mytag')

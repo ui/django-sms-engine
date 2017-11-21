@@ -127,19 +127,6 @@ class Tag(models.Model):
         if tag:
             return tag
 
-        if create:
-            tag, _ = cls.objects.get_or_create(name=name)
-        else:
-            tag = cls.objects.filter(name=name).first()
+        tag = cls.objects.filter(name=name).first()
 
-        if tag:
-            cache.set(key, tag)
-
-        return tag
-
-    @classmethod
-    def assign(cls, name, sms):
-        tag = cls.get(name)
-        tag.sms.add(sms)
-        cache.set(cls.KEY % name, tag)
         return tag
