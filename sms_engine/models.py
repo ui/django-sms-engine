@@ -137,8 +137,11 @@ class Tag(models.Model):
     def save(self, *args, **kwargs):
         # clear cache
         if self.pk:
-            old_name = Tag.objects.get(id=self.pk).name
-            cache.delete(Tag.KEY % (slugify(old_name)))
+            try:
+                old_name = Tag.objects.get(id=self.pk).name
+                cache.delete(Tag.KEY % (slugify(old_name)))
+            except Tag.DoesNotExist:
+                pass
 
         return super(Tag, self).save(*args, **kwargs)
 
