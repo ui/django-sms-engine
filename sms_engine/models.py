@@ -3,6 +3,7 @@ from collections import namedtuple
 from django.core.cache import cache
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
 from .compat import text_type, import_attribute
@@ -122,25 +123,25 @@ class Tag(models.Model):
 
     @classmethod
     def get(cls, name, create=False):
-        tag = cache.get(cls.KEY % name)
+        slugified_name = slugify(name)
+
+        tag = cache.get(cls.KEY % slugified_name)
         if tag:
             return tag
 
         tag = cls.objects.filter(name=name).first()
         if tag:
-            cache.add(cls.KEY % (name), tag)
+            cache.set(cls.KEY % (slugified_name), tag)
         return tag
 
     def save(self, *args, **kwargs):
         # clear cache
         if self.pk:
             old_name = Tag.objects.get(id=self.pk).name
-            cache.delete(Tag.KEY % (old_name))
+            cache.delete(Tag.KEY % (slugify(old_name)))
 
-        tag = super(Tag, self).save(*args, **kwargs)
-        cache.add(Tag.KEY % self.name, tag)
-        return tag
+        return super(Tag, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         super(Tag, self).delete(*args, **kwargs)
-        cache.delete(Tag.KEY % self.name)
+        cache.delete(Tag.KEY % slugify(self.name))

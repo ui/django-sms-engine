@@ -41,6 +41,20 @@ class ModelsTest(TestCase):
     def test_tag(self):
         self.assertIsNone(Tag.get('mytag'))
 
+        # make sure tag object is cached
         tag = Tag.objects.create(name='mytag')
         self.assertEqual(Tag.get('mytag'), tag)
-        cache.delete(Tag.KEY % 'mytag')
+        self.assertEqual(cache.get("sms-tag:mytag"), tag)
+
+        # if tag name is changed, the old cached object should be cleared
+        # and create a new one
+        tag.name = 'newtag'
+        tag.save()
+
+        self.assertIsNone(Tag.get('mytag'))
+        self.assertEqual(Tag.get('newtag'), tag)
+        self.assertEqual(cache.get('sms-tag:newtag'), tag)
+
+        # if tag is deleted, it should remove the cached object
+        tag.delete()
+        self.assertIsNone(cache.get('sms-tag:newtag'))
