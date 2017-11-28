@@ -122,7 +122,7 @@ class Tag(models.Model):
         return self.name
 
     @classmethod
-    def get(cls, name, create=False):
+    def get(cls, name):
         slugified_name = slugify(name)
 
         tag = cache.get(cls.KEY % slugified_name)
@@ -137,11 +137,8 @@ class Tag(models.Model):
     def save(self, *args, **kwargs):
         # clear cache
         if self.pk:
-            try:
-                old_name = Tag.objects.get(id=self.pk).name
-                cache.delete(Tag.KEY % (slugify(old_name)))
-            except Tag.DoesNotExist:
-                pass
+            old_name = Tag.objects.get(id=self.pk).name
+            cache.delete(Tag.KEY % (slugify(old_name)))
 
         return super(Tag, self).save(*args, **kwargs)
 
