@@ -111,9 +111,9 @@ class Log(models.Model):
 
 
 @python_2_unicode_compatible
-class Tag(models.Model):
+class SMSTag(models.Model):
 
-    KEY = 'sms-tag:%s'
+    CACHE_KEY_TEMPLATE = 'sms-tag:%s'
 
     name = models.CharField(max_length=255, unique=True)
     sms = models.ManyToManyField(SMS, blank=True, related_name='sms')
@@ -122,26 +122,30 @@ class Tag(models.Model):
         return self.name
 
     @classmethod
-    def get(cls, name):
-        slugified_name = slugify(name)
+    def get_cache_key(cls, name):
+        return cls.CACHE_KEY_TEMPLATE % slugify(name)
 
-        tag = cache.get(cls.KEY % slugified_name)
+    @classmethod
+    def get(cls, name):
+        key = SMSTag.get_cache_key(name)
+
+        tag = cache.get(key)
         if tag:
             return tag
 
         tag = cls.objects.filter(name=name).first()
         if tag:
-            cache.set(cls.KEY % (slugified_name), tag)
+            cache.set(key, tag)
         return tag
 
     def save(self, *args, **kwargs):
         # clear cache
         if self.pk:
-            old_name = Tag.objects.get(id=self.pk).name
-            cache.delete(Tag.KEY % (slugify(old_name)))
+            old_name = SMSTag.objects.get(id=self.pk).name
+            cache.delete(SMSTag.get_cache_key(old_name))
 
-        return super(Tag, self).save(*args, **kwargs)
+        return super(SMSTag, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        super(Tag, self).delete(*args, **kwargs)
-        cache.delete(Tag.KEY % slugify(self.name))
+        super(SMSTag, self).delete(*args, **kwargs)
+        cache.delete(SMSTag.get_cache_key(self.name))
