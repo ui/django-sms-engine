@@ -8,7 +8,7 @@ class LogInline(admin.TabularInline):
 
 
 class SMSAdmin(admin.ModelAdmin):
-    list_display = ('to', 'backend_alias', 'created', 'status')
+    list_display = ('to', 'created', 'status', 'backend_alias')
     search_fields = ('to', 'description')
     inlines = [LogInline]
 
