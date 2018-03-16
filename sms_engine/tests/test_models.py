@@ -1,6 +1,7 @@
+from django.core.cache import cache
 from django.test import TestCase
 
-from sms_engine.models import SMS, STATUS
+from sms_engine.models import SMS, SMSTag, STATUS
 
 
 class ModelsTest(TestCase):
@@ -36,3 +37,24 @@ class ModelsTest(TestCase):
         log = sms.logs.first()
         self.assertEqual(log.message, 'SMS sending error')
         self.assertEqual(log.exception_type, 'SendSMSError')
+
+    def test_tag(self):
+        self.assertIsNone(SMSTag.get('mytag'))
+
+        # make sure tag object is cached
+        tag = SMSTag.objects.create(name='mytag')
+        self.assertEqual(SMSTag.get('mytag'), tag)
+        self.assertEqual(cache.get("sms-tag:mytag"), tag)
+
+        # if tag name is changed, the old cached object should be cleared
+        # and create a new one
+        tag.name = 'newtag'
+        tag.save()
+
+        self.assertIsNone(SMSTag.get('mytag'))
+        self.assertEqual(SMSTag.get('newtag'), tag)
+        self.assertEqual(cache.get('sms-tag:newtag'), tag)
+
+        # if tag is deleted, it should remove the cached object
+        tag.delete()
+        self.assertIsNone(cache.get('sms-tag:newtag'))
