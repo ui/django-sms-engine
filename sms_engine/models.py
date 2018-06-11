@@ -95,7 +95,7 @@ class Log(models.Model):
     STATUS_CHOICES = [(STATUS.sent, _("sent")), (STATUS.failed, _("failed"))]
 
     sms = models.ForeignKey(SMS, editable=False, related_name='logs',
-                            verbose_name=_('SMS'))
+                            on_delete=models.CASCADE, verbose_name=_('SMS'))
     date = models.DateTimeField(auto_now_add=True)
     status = models.PositiveSmallIntegerField(_('Status'), choices=STATUS_CHOICES)
     exception_type = models.CharField(_('Exception type'), max_length=255, blank=True)
