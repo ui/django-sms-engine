@@ -2,7 +2,6 @@ import datetime
 
 from django.core.management import call_command
 from django.test import TestCase
-from django.test.utils import override_settings
 from django.utils.timezone import now
 
 from ..models import SMS, STATUS

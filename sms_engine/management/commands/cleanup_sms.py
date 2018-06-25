@@ -1,9 +1,10 @@
 import datetime
 
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.utils.timezone import now
 
-from ...models import SMS
+from ...models import Log, SMS
 
 
 class Command(BaseCommand):
@@ -21,5 +22,14 @@ class Command(BaseCommand):
 
         cutoff_date = now() - datetime.timedelta(days)
         count = SMS.objects.filter(created__lt=cutoff_date).count()
-        SMS.objects.only('id').filter(created__lt=cutoff_date).delete()
+
+        Log.objects.filter(sms__created__lt=cutoff_date).delete()
+        sms = SMS.objects.order_by('-created').filter(created__lt=cutoff_date).first()
+
+        if sms:
+            cursor = connection.cursor()
+            query = 'DELETE FROM "sms_engine_sms" WHERE "sms_engine_sms"."id" < "%s"' % \
+                    cutoff_date
+            cursor.execute(query)
+
         print("Deleted {0} mails created before {1} ".format(count, cutoff_date))
