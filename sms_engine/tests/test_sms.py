@@ -3,10 +3,16 @@ from django.test import TestCase
 from mock import patch
 
 from sms_engine.models import SMS, PRIORITY, STATUS, Log
-from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk
+from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk, get_queued
 
 
 class SMSTest(TestCase):
+
+    def test_get_queued_sms_respecting_priority(self):
+        sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
+        sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
+                          priority=PRIORITY.high)
+        self.assertEqual([sms2, sms1], list(get_queued()))
 
     def test_sms_create(self):
         create_sms(to="+62800000000001", message="Test", backend='dummy')
