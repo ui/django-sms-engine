@@ -20,7 +20,6 @@ class BackendTest(TestCase):
         self.assertEqual(sms_.priority, PRIORITY.medium)
 
     def test_email_backend_settings(self):
-        print(get_available_backends())
         self.maxDiff = None
 
         self.assertEqual(get_available_backends(), {
