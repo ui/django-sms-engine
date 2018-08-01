@@ -54,8 +54,7 @@ class SMS(models.Model):
             log_level = get_log_level()
 
         try:
-            backend_str = get_backend(self.backend_alias)
-            backend = import_attribute(backend_str)()
+            backend = get_backend(self.backend_alias)
             self.transaction_id = backend.send_message(self)
 
             message = ''

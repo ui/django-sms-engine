@@ -12,10 +12,19 @@ SMS_ENGINE = {
     'BACKENDS': {
         'default': 'sms_engine.backends.DummyBackend',
         'dummy': 'sms_engine.backends.DummyBackend',
-        'twilio': 'sms_engine.backends.TwilioBackend',
-        'nadyne': 'sms_engine.backends.NadyneBackend',
-        'error': 'sms_engine.backends.RaiseExceptionBackend'
-    }
+        'always153': 'sms_engine.backends.Always153Backend',
+        'error': 'sms_engine.backends.RaiseExceptionBackend',
+        'dynamic-test123': {
+            'CLASS': 'sms_engine.backends.DynamicBackend',
+            'usr': 'test123',
+            'pwd': 'test456',
+        },
+        'dynamic-proper-sender': {
+            'CLASS': 'sms_engine.backends.DynamicBackend',
+            'usr': 'proper-sender',
+            'pwd': 'proper-password',
+        }
+    },
 }
 
 
