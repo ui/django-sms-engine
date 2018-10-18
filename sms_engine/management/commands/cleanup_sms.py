@@ -25,8 +25,9 @@ class Command(BaseCommand):
 
         Log.objects.filter(sms__created__lt=cutoff_date).delete()
         cursor = connection.cursor()
-        query = 'DELETE FROM "sms_engine_sms" WHERE "sms_engine_sms"."created" < "%s"' % \
-                cutoff_date.strftime('%Y-%m-%dT%H%M%S.%f')
+        query = "DELETE FROM sms_engine_sms WHERE sms_engine_sms.created < '%s'" % \
+            cutoff_date.strftime('%Y-%m-%dT%H%M%S.%f')
+                        
         cursor.execute(query)
 
         print("Deleted {0} mails created before {1} ".format(count, cutoff_date))
