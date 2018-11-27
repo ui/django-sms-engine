@@ -28,12 +28,9 @@ def get_available_backends():
         and at least one of the backends is called `default` !
         Empty backend should not be allowed
     """
-    backends = get_config().get('BACKENDS', {})
+    backends = get_config().get('BACKENDS')
 
-    if not backends:
-        raise ImproperlyConfigured('default backend is required')
-
-    if not backends.get('default'):
+    if not backends or not backends.get('default'):
         raise ImproperlyConfigured('default backend is required')
 
     return backends
