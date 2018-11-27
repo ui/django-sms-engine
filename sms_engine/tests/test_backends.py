@@ -25,15 +25,15 @@ class BackendTest(TestCase):
         self.assertEqual(get_available_backends(), {
             'default': 'sms_engine.backends.DummyBackend',
             'dummy': 'sms_engine.backends.DummyBackend',
-            'always153': 'sms_engine.backends.Always153Backend',
+            'always153': 'sms_engine.tests.backends.Always153Backend',
             'error': 'sms_engine.backends.RaiseExceptionBackend',
             'dynamic-test123': {
-                'CLASS': 'sms_engine.backends.DynamicBackend',
+                'CLASS': 'sms_engine.tests.backends.DynamicBackend',
                 'usr': 'test123',
                 'pwd': 'test456',
             },
             'dynamic-proper-sender': {
-                'CLASS': 'sms_engine.backends.DynamicBackend',
+                'CLASS': 'sms_engine.tests.backends.DynamicBackend',
                 'usr': 'proper-sender',
                 'pwd': 'proper-password',
             }
@@ -62,7 +62,8 @@ class BackendTest(TestCase):
         self.assertEqual(test123_backend.__class__, DynamicBackend)
         self.assertEqual(
             test123_backend.kwargs,
-            {'CLASS': 'sms_engine.backends.DynamicBackend', 'usr': 'test123', 'pwd': 'test456'})
+            {'CLASS': 'sms_engine.tests.backends.DynamicBackend',
+             'usr': 'test123', 'pwd': 'test456'})
 
         # We have another sender, but using the same backend
         proper_sender_backend = get_backend('dynamic-proper-sender')
@@ -71,5 +72,6 @@ class BackendTest(TestCase):
         self.assertEqual(proper_sender_backend.__class__, DynamicBackend)
         self.assertEqual(
             proper_sender_backend.kwargs,
-            {'CLASS': 'sms_engine.backends.DynamicBackend', 'usr': 'proper-sender', 'pwd': 'proper-password'})
-
+            {'CLASS': 'sms_engine.tests.backends.DynamicBackend',
+             'usr': 'proper-sender',
+             'pwd': 'proper-password'})
