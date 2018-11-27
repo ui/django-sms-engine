@@ -4,7 +4,8 @@ from django.test import TestCase
 from sms_engine import sms
 from sms_engine.models import SMS, STATUS, PRIORITY
 from sms_engine.settings import get_backend, get_available_backends
-from sms_engine.backends import Always153Backend, DynamicBackend, DummyBackend
+from sms_engine.backends import DummyBackend
+from sms_engine.tests.backends import Always153Backend, DynamicBackend
 
 
 class BackendTest(TestCase):
