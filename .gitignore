@@ -26,6 +26,7 @@ pip-delete-this-directory.txt
 ghostdriver.log
 
 # Editor configs
+.vscode
 .project
 .pydevproject
 .python-version
@@ -35,3 +36,6 @@ ghostdriver.log
 ## generic files to ignore
 *~
 *.lock
+
+## sqlite
+*.sqlite3
