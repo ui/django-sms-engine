@@ -13,7 +13,7 @@ class BackendTest(TestCase):
             Backend.PRIORITY.normal: [],
             Backend.PRIORITY.low: [],
         }
-        self.assertEqual(cached_backend.get(cache=False), expected)
+        self.assertEqual(cached_backend.get(use_cache=False), expected)
 
         # multiple backends
         Backend.objects.create(alias='anomali_nadyne', priority=0)
@@ -26,7 +26,7 @@ class BackendTest(TestCase):
             Backend.PRIORITY.normal: ['anomali_twilio'],
             Backend.PRIORITY.low: ['anomali_ims'],
         }
-        self.assertEqual(cached_backend.get(cache=False), expected)
+        self.assertEqual(cached_backend.get(use_cache=False), expected)
 
         # Inactive backends should not be returned
         anomali_twilio.is_active = False
@@ -38,4 +38,4 @@ class BackendTest(TestCase):
             Backend.PRIORITY.normal: [],
             Backend.PRIORITY.low: [],
         }
-        self.assertEqual(cached_backend.get(cache=False), expected)
+        self.assertEqual(cached_backend.get(use_cache=False), expected)

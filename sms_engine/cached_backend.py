@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.core.cache import cache as dj_cache
+from django.core.cache import cache
+
 from sms_engine.models import Backend
 
 
@@ -11,10 +12,10 @@ else:
 
 def delete():
     key = CACHE_KEY
-    dj_cache.delete(key)
+    cache.delete(key)
 
 
-def get(cache=True):
+def get(use_cache=True):
     """ Get backend aliases as a dictionary which are cached by defaults.
     """
     key = CACHE_KEY
@@ -23,7 +24,7 @@ def get(cache=True):
 
     if cache:
         # Hit cache first
-        backend_aliases = dj_cache.get(key)
+        backend_aliases = cache.get(key)
         if backend_aliases:
             return backend_aliases
 
@@ -37,6 +38,6 @@ def get(cache=True):
     for backend in backends:
         backend_dict[backend.priority].append(backend.alias)
 
-    if cache:
-        dj_cache.set(key, backend_dict)
+    if use_cache:
+        cache.set(key, backend_dict)
     return backend_dict
