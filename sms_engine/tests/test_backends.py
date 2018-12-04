@@ -40,10 +40,10 @@ class BackendTest(TestCase):
             }
         })
 
-        self.assertEqual(get_backend('always153').__class__, Always153Backend)
+        self.assertTrue(isinstance(get_backend('always153'), Always153Backend))
 
         # No parameter to `get_backend` means you want the default
-        self.assertEqual(get_backend().__class__, DummyBackend)
+        self.assertTrue(isinstance(get_backend(), DummyBackend))
 
         # Empty backends should always raise improper configured error
         with self.settings(SMS_ENGINE={}):
@@ -60,7 +60,7 @@ class BackendTest(TestCase):
         test123_backend = get_backend('dynamic-test123')
 
         # Validate type and kwargs are sent correctly
-        self.assertEqual(test123_backend.__class__, DynamicBackend)
+        self.assertTrue(isinstance(test123_backend, DynamicBackend))
         self.assertEqual(
             test123_backend.kwargs,
             {'CLASS': 'sms_engine.tests.backends.DynamicBackend',
@@ -70,7 +70,7 @@ class BackendTest(TestCase):
         proper_sender_backend = get_backend('dynamic-proper-sender')
 
         # Validate type and kwargs are sent correctly
-        self.assertEqual(proper_sender_backend.__class__, DynamicBackend)
+        self.assertTrue(isinstance(proper_sender_backend, DynamicBackend))
         self.assertEqual(
             proper_sender_backend.kwargs,
             {'CLASS': 'sms_engine.tests.backends.DynamicBackend',

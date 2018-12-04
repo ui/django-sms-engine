@@ -12,7 +12,7 @@ def get_backend(alias=None):
 
     if isinstance(backend_config, string_types):
         return import_attribute(backend_config)()
-    elif type(backend_config) == dict:
+    elif isinstance(backend_config, dict):
         # We have kwargs to be passed to the __init__ of the backend
         backend_class = backend_config.get("CLASS")
         if not backend_class:
