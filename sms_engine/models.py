@@ -117,5 +117,8 @@ class Backend(models.Model):
     priority = models.IntegerField(_("Priority"), choices=PRIORITY_CHOICES, default=PRIORITY.normal)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        app_label = 'sms_engine'
+
     def __str__(self):
         return self.alias
