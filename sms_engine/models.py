@@ -105,3 +105,19 @@ class Log(models.Model):
 
     def __str__(self):
         return text_type(self.date)
+
+
+@python_2_unicode_compatible
+class Backend(models.Model):
+    alias = models.CharField(max_length=255)
+    PRIORITY = namedtuple('PRIORITY', 'high normal low')._make(range(3))
+    PRIORITY_CHOICES = [(PRIORITY.high, _("high")), (PRIORITY.normal, _("normal")),
+                        (PRIORITY.low, _("low"))]
+    priority = models.IntegerField(_("Priority"), choices=PRIORITY_CHOICES, default=PRIORITY.normal)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        app_label = 'sms_engine'
+
+    def __str__(self):
+        return self.alias
