@@ -1,10 +1,11 @@
+import random
+
 from collections import namedtuple
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from .compat import text_type, import_attribute
 from .settings import get_log_level, get_backend
 
 
@@ -121,3 +122,28 @@ class Backend(models.Model):
 
     def __str__(self):
         return self.alias
+
+    def save(self, *args, **kwargs):
+        super(Backend, self).save(*args, **kwargs)
+        from sms_engine import cached_backend
+        cached_backend.delete()
+
+    @classmethod
+    def flatten(cls, backend_dict, cache=True, min_backends=3):
+        """ Return flattened list of backend alias to try in order.
+            * This generates `min_backeds` amount of backends.
+            * Backends will randomly be repeated until min_backends reach
+            * Backends with same priority are shuffled
+        """
+        # Shuffle multiple backends
+        # List[str]
+        flattened_backends = []
+        for key in [cls.PRIORITY.high, cls.PRIORITY.normal, cls.PRIORITY.low]:
+            random.shuffle(backend_dict[key])
+            flattened_backends += backend_dict[key]
+
+        # Repeat some backends if backends are properly setup and less than min_backends
+        while flattened_backends and len(flattened_backends) < min_backends:
+            flattened_backends += random.sample(flattened_backends, 1)
+
+        return flattened_backends
