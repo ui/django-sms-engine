@@ -9,7 +9,6 @@ from sms_engine.models import SMS, STATUS
 class ModelsTest(TestCase):
 
     def test_dispatch(self):
-        print("test dispatch")
         sms = SMS.objects.create(
             to='+6280000000000', message='test', backend_alias='dummy'
         )
