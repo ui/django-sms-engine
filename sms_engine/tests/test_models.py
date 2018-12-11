@@ -1,11 +1,15 @@
+from django.conf import settings
 from django.test import TestCase
 
+from mock import patch
+from requests.exceptions import ConnectTimeout
 from sms_engine.models import SMS, STATUS
 
 
 class ModelsTest(TestCase):
 
     def test_dispatch(self):
+        print("test dispatch")
         sms = SMS.objects.create(
             to='+6280000000000', message='test', backend_alias='dummy'
         )
@@ -36,3 +40,20 @@ class ModelsTest(TestCase):
         log = sms.logs.first()
         self.assertEqual(log.message, 'SMS sending error')
         self.assertEqual(log.exception_type, 'SendSMSError')
+
+        print("asdasdqeqw")
+        # retry on correct exceptions
+        settings.SMS_ENGINE['MAX_RETRIES'] = 2
+        settings.SMS_ENGINE['EXCEPTIONS_TO_RETRY'] = set([ConnectTimeout])
+        with patch('sms_gateway.core.backends.NadyneBaseBackend.send_message',
+                   side_effect=ConnectTimeout()):
+            sms = SMS.objects.create(
+                to="+6281314855365",
+                message="test",
+            )
+
+            # Commit=False (bulk sending), expect any errors to be bubbled up
+            with self.assertRaises(ConnectTimeout):
+                sms.dispatch(commit=False)
+            log = sms.logs.first()
+            self.assertEqual(log.exception_type, 'ConnectTimeout')

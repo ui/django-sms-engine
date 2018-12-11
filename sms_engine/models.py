@@ -1,4 +1,5 @@
 import random
+import time
 
 from collections import namedtuple
 
@@ -6,7 +7,9 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
-from .settings import get_log_level, get_backend
+from .compat import text_type, import_attribute
+from .settings import (get_log_level, get_max_retry,
+                       get_exceptions_to_retry, get_available_backends)
 
 
 PRIORITY = namedtuple('PRIORITY', 'low medium high now')._make(range(4))
@@ -47,41 +50,67 @@ class SMS(models.Model):
     def __str__(self):
         return u'%s' % self.to
 
-    def dispatch(self, log_level=None, commit=True):
+    def dispatch(self, log_level=None, commit=True, use_cache=True):
         """
         Method that send out the sms
         """
         if log_level is None:
             log_level = get_log_level()
 
-        try:
-            backend = get_backend(self.backend_alias)
-            self.transaction_id = backend.send_message(self)
+        # Get global config on all backends
+        max_retry = get_max_retry()
+        exceptions = get_exceptions_to_retry()
 
-            message = ''
-            status = STATUS.sent
-            self.status = status
-            exception_type = ''
-        except Exception as e:
-            message = e
-            status = STATUS.failed
-            self.status = status
-            exception_type = type(e).__name__
+        from sms_engine import cached_backend
+        backend_dict = cached_backend.get(use_cache=use_cache)
+        backends = Backend.flatten(backend_dict, min_backends=max_retry + 1)
+        for loop_count, backend_alias in enumerate(backends, start=1):
+            try:
+                backend = import_attribute(get_available_backends()[backend_alias])()
+                self.transaction_id = backend.send_message(self)
 
-            if not commit:
-                raise
+                # Succeed, so break from the loop
+                status = STATUS.sent
+                self.status = status
+
+                if log_level and log_level == 2:
+                    self.logs.create(status=status, message='', exception_type='')
+
+                break
+            except Exception as e:
+                # TODO hapus print
+                self.status = STATUS.failed
+
+                # Individual backend failure, needs to keep track of this to promote/demote
+                # Backends
+
+                # Log failure on each backends
+                if log_level and log_level >= 1:
+                    self.logs.create(status=self.status, message=str(e),
+                                     exception_type=type(e).__name__)
+
+                # Do not continue if this is the last loop
+                if loop_count == (max_retry + 1):
+                    if commit:
+                        break
+                    else:
+                        # Ultimate failure
+                        raise e
+
+                # Only continue loop if exceptions are what we expect
+                if type(e) in exceptions:
+                    time.sleep(1)
+                    continue
+
+                # Break away from the loop in any other case
+                if commit:
+                    break
+                else:
+                    # Ultimate failure
+                    raise e
 
         if commit:
             self.save()
-
-            # If log level is 0, log nothing, 1 only logs failures
-            # and 2 means log both successes and failures
-            if log_level == 1 and status == STATUS.failed:
-                self.logs.create(status=status, message=message,
-                                 exception_type=exception_type)
-            elif log_level == 2:
-                self.logs.create(status=status, message=message,
-                                 exception_type=exception_type)
 
         return status
 

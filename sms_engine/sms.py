@@ -126,6 +126,8 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
             sent_smses.append(sms)
             logger.debug('Successfully sent sms #%d' % sms.id)
         except Exception as e:
+            # TODO hapus print
+            print(e)
             logger.debug('Failed to send sms #%d' % sms.id)
             failed_smses.append((sms, e))
 
