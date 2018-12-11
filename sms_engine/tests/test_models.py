@@ -40,7 +40,6 @@ class ModelsTest(TestCase):
         self.assertEqual(log.message, 'SMS sending error')
         self.assertEqual(log.exception_type, 'SendSMSError')
 
-        print("asdasdqeqw")
         # retry on correct exceptions
         settings.SMS_ENGINE['MAX_RETRIES'] = 2
         settings.SMS_ENGINE['EXCEPTIONS_TO_RETRY'] = set([ConnectTimeout])
