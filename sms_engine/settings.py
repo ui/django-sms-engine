@@ -54,3 +54,12 @@ def get_default_priority():
 
 def get_log_level():
     return get_config().get('LOG_LEVEL', 1)
+
+
+def get_max_retry():
+    # No retry by default
+    return get_config().get('MAX_RETRIES', 0)
+
+
+def get_exceptions_to_retry():
+    return get_config().get('EXCEPTIONS_TO_RETRY', set())

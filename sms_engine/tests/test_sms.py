@@ -1,12 +1,12 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from mock import patch
 
-from sms_engine.models import SMS, PRIORITY, STATUS, Log
+from sms_engine.models import SMS, PRIORITY, STATUS, Log, Backend
 from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk, get_queued
 
 
-class SMSTest(TestCase):
+class SMSTest(TransactionTestCase):
 
     def test_get_queued_sms_respecting_priority(self):
         sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
@@ -46,22 +46,30 @@ class SMSTest(TestCase):
         self.assertEqual(mock.call_count, 1)
 
     def test_send_bulk_sms(self):
-        for i in range(0, 30):
-            # Create 6 error smss
-            if i % 5 == 0:
-                SMS.objects.create(
-                    to='+6280000000000', message='test', backend_alias='error'
-                )
-            else:
-                SMS.objects.create(
-                    to='+6280000000000', message='test', backend_alias='dummy'
-                )
-
+        # sent smses
+        backend = Backend.objects.create(alias="dummy")
+        for i in range(0, 24):
+            SMS.objects.create(
+                to='+6280000000000', message='test', backend_alias='dummy'
+            )
         _send_bulk(SMS.objects.all(), log_level=2)
-
         self.assertEqual(
             SMS.objects.filter(to='+6280000000000', status=STATUS.sent).count(), 24
         )
+        self.assertEqual(
+            Log.objects.filter(status=STATUS.sent).count(), 24
+        )
+
+        # Failed smses
+        backend.alias = "error"
+        backend.save()
+        SMS.objects.all().delete()
+
+        for i in range(0, 6):
+            SMS.objects.create(
+                to='+6280000000000', message='test', backend_alias='error'
+            )
+        _send_bulk(SMS.objects.all(), log_level=2)
         self.assertEqual(
             SMS.objects.filter(to='+6280000000000', status=STATUS.failed).count(), 6
         )
@@ -69,7 +77,4 @@ class SMSTest(TestCase):
         # make sure logs for failed smss created properly
         self.assertEqual(
             Log.objects.filter(status=STATUS.failed).count(), 6
-        )
-        self.assertEqual(
-            Log.objects.filter(status=STATUS.sent).count(), 24
         )
