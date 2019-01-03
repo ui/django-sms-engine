@@ -1,13 +1,13 @@
 import datetime
 
 from django.core.management import call_command
-from django.test import TransactionTestCase
+from django.test import TestCase
 from django.utils.timezone import now
 
 from ..models import Log, SMS, STATUS
 
 
-class CommandTest(TransactionTestCase):
+class CommandTest(TestCase):
 
     def test_cleanup_sms(self):
         """

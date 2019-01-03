@@ -1,12 +1,12 @@
 from django.conf import settings
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from mock import patch
 from requests.exceptions import ConnectTimeout
 from sms_engine.models import SMS, STATUS, Backend
 
 
-class ModelsTest(TransactionTestCase):
+class ModelsTest(TestCase):
 
     def test_dispatch(self):
         backend = Backend.objects.create(alias="dummy")

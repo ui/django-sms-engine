@@ -1,5 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from mock import patch
 
@@ -10,7 +10,7 @@ from sms_engine.backends import DummyBackend
 from sms_engine.tests.backends import Always153Backend, DynamicBackend
 
 
-class BackendTest(TransactionTestCase):
+class BackendTest(TestCase):
 
     def test_email_backend(self):
         """
