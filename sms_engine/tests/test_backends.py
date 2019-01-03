@@ -1,5 +1,6 @@
+from django.db import connection
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from mock import patch
 
@@ -10,7 +11,7 @@ from sms_engine.backends import DummyBackend
 from sms_engine.tests.backends import Always153Backend, DynamicBackend
 
 
-class BackendTest(TestCase):
+class BackendTest(TransactionTestCase):
 
     def test_email_backend(self):
         """
@@ -135,3 +136,6 @@ class BackendTest(TestCase):
         anomali_twilio.priority = 1
         anomali_twilio.save()
         self.assertEqual(delete_mock.call_count, 2)
+
+    def tearDown(self):
+        connection.close()

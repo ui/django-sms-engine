@@ -64,6 +64,10 @@ class SMS(models.Model):
         from sms_engine import cached_backend
         backend_dict = cached_backend.get(use_cache=use_cache)
         backends = Backend.flatten(backend_dict, min_backends=max_retry + 1)
+
+        if backends == []:
+            backends = ["default"]
+
         for loop_count, backend_alias in enumerate(backends, start=1):
             try:
                 backend = import_attribute(get_available_backends()[backend_alias])()
@@ -78,8 +82,8 @@ class SMS(models.Model):
 
                 break
             except Exception as e:
-                # TODO hapus print
-                self.status = STATUS.failed
+                status = STATUS.failed
+                self.status = status
 
                 # Individual backend failure, needs to keep track of this to promote/demote
                 # Backends

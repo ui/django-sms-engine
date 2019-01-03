@@ -1,10 +1,11 @@
-from django.test import TestCase
+from django.db import connection
+from django.test import TransactionTestCase
 
 from sms_engine import cached_backend
 from sms_engine.models import Backend
 
 
-class BackendTest(TestCase):
+class BackendTest(TransactionTestCase):
 
     def test_cached_backend_get(self):
         # Empty aliases

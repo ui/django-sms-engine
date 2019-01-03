@@ -111,9 +111,6 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
     if uses_multiprocessing:
         db_connection.close()
 
-    if log_level is None:
-        log_level = get_log_level()
-
     sent_smses = []
     failed_smses = []
     sms_count = len(smss)
@@ -126,8 +123,6 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
             sent_smses.append(sms)
             logger.debug('Successfully sent sms #%d' % sms.id)
         except Exception as e:
-            # TODO hapus print
-            print(e)
             logger.debug('Failed to send sms #%d' % sms.id)
             failed_smses.append((sms, e))
 
@@ -145,26 +140,6 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
 
     for (sms, _) in failed_smses:
         sms.save()
-
-    if log_level >= 1:
-        logs = []
-        for (sms, exception) in failed_smses:
-            logs.append(
-                Log(sms=sms, status=STATUS.failed,
-                    message=str(exception),
-                    exception_type=type(exception).__name__)
-            )
-
-        if logs:
-            Log.objects.bulk_create(logs)
-
-    if log_level == 2:
-        logs = []
-        for sms in sent_smses:
-            logs.append(Log(sms=sms, status=STATUS.sent))
-
-        if logs:
-            Log.objects.bulk_create(logs)
 
     sent_count = len(sent_smses)
     failed_count = len(failed_smses)
