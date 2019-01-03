@@ -1,7 +1,6 @@
 import datetime
 
 from django.core.management import call_command
-from django.db import connection
 from django.test import TransactionTestCase
 from django.utils.timezone import now
 

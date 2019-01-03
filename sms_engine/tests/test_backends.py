@@ -1,4 +1,3 @@
-from django.db import connection
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TransactionTestCase
 
@@ -136,6 +135,3 @@ class BackendTest(TransactionTestCase):
         anomali_twilio.priority = 1
         anomali_twilio.save()
         self.assertEqual(delete_mock.call_count, 2)
-
-    def tearDown(self):
-        connection.close()

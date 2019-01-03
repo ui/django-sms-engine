@@ -1,4 +1,3 @@
-from django.db import connection
 from django.test import TransactionTestCase
 
 from mock import patch

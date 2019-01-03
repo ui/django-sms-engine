@@ -1,5 +1,4 @@
 from django.core.management import call_command
-from django.db import connection
 from django.test import TransactionTestCase
 
 from ..models import SMS, STATUS, Backend
