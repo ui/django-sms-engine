@@ -1,10 +1,12 @@
+import random
+
 from collections import namedtuple
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six import text_type
 from django.utils.translation import ugettext_lazy as _
 
-from .compat import text_type, import_attribute
 from .settings import get_log_level, get_backend
 
 
@@ -54,8 +56,7 @@ class SMS(models.Model):
             log_level = get_log_level()
 
         try:
-            backend_str = get_backend(self.backend_alias)
-            backend = import_attribute(backend_str)()
+            backend = get_backend(self.backend_alias)
             self.transaction_id = backend.send_message(self)
 
             message = ''
@@ -95,7 +96,7 @@ class Log(models.Model):
     STATUS_CHOICES = [(STATUS.sent, _("sent")), (STATUS.failed, _("failed"))]
 
     sms = models.ForeignKey(SMS, editable=False, related_name='logs',
-                            verbose_name=_('SMS'))
+                            on_delete=models.CASCADE, verbose_name=_('SMS'))
     date = models.DateTimeField(auto_now_add=True)
     status = models.PositiveSmallIntegerField(_('Status'), choices=STATUS_CHOICES)
     exception_type = models.CharField(_('Exception type'), max_length=255, blank=True)
@@ -106,3 +107,44 @@ class Log(models.Model):
 
     def __str__(self):
         return text_type(self.date)
+
+
+@python_2_unicode_compatible
+class Backend(models.Model):
+    alias = models.CharField(max_length=255)
+    PRIORITY = namedtuple('PRIORITY', 'high normal low')._make(range(3))
+    PRIORITY_CHOICES = [(PRIORITY.high, _("high")), (PRIORITY.normal, _("normal")),
+                        (PRIORITY.low, _("low"))]
+    priority = models.IntegerField(_("Priority"), choices=PRIORITY_CHOICES, default=PRIORITY.normal)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        app_label = 'sms_engine'
+
+    def __str__(self):
+        return self.alias
+
+    def save(self, *args, **kwargs):
+        super(Backend, self).save(*args, **kwargs)
+        from sms_engine import cached_backend
+        cached_backend.delete()
+
+    @classmethod
+    def flatten(cls, backend_dict, cache=True, min_backends=3):
+        """ Return flattened list of backend alias to try in order.
+            * This generates `min_backeds` amount of backends.
+            * Backends will randomly be repeated until min_backends reach
+            * Backends with same priority are shuffled
+        """
+        # Shuffle multiple backends
+        # List[str]
+        flattened_backends = []
+        for key in [cls.PRIORITY.high, cls.PRIORITY.normal, cls.PRIORITY.low]:
+            random.shuffle(backend_dict[key])
+            flattened_backends += backend_dict[key]
+
+        # Repeat some backends if backends are properly setup and less than min_backends
+        while flattened_backends and len(flattened_backends) < min_backends:
+            flattened_backends += random.sample(flattened_backends, 1)
+
+        return flattened_backends
