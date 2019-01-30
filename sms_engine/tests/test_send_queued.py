@@ -72,7 +72,6 @@ class CommandTest(TestCase):
         """
         Empty backend alias shouldn't cause infinite loop
         """
-
         # Empty backend alias will point to `default` backend
         sms = SMS.objects.create(to='+6280000000000', status=STATUS.queued)
         call_command('send_queued_sms', log_level=0)

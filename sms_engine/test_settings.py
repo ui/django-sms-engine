@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+import os
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3')
     },
 }
 
@@ -12,10 +15,19 @@ SMS_ENGINE = {
     'BACKENDS': {
         'default': 'sms_engine.backends.DummyBackend',
         'dummy': 'sms_engine.backends.DummyBackend',
-        'twilio': 'sms_engine.backends.TwilioBackend',
-        'nadyne': 'sms_engine.backends.NadyneBackend',
-        'error': 'sms_engine.backends.RaiseExceptionBackend'
-    }
+        'always153': 'sms_engine.tests.backends.Always153Backend',
+        'error': 'sms_engine.backends.RaiseExceptionBackend',
+        'dynamic-test123': {
+            'CLASS': 'sms_engine.tests.backends.DynamicBackend',
+            'usr': 'test123',
+            'pwd': 'test456',
+        },
+        'dynamic-proper-sender': {
+            'CLASS': 'sms_engine.tests.backends.DynamicBackend',
+            'usr': 'proper-sender',
+            'pwd': 'proper-password',
+        }
+    },
 }
 
 
