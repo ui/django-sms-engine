@@ -40,6 +40,8 @@ class SMS(models.Model):
                                      max_length=64)
     description = models.CharField(max_length=256, blank=True, default='')
     transaction_id = models.CharField(max_length=256, blank=True, default='')
+    start_delivery_time = models.TimeField(blank=True, null=True)
+    end_delivery_time = models.TimeField(blank=True, null=True)
 
     class Meta:
         app_label = 'sms_engine'
