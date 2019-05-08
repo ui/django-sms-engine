@@ -16,7 +16,7 @@ logger = setup_loghandlers("INFO")
 
 
 def create(to=None, message="", description="", scheduled_time=None, priority=None,
-           commit=True, backend=""):
+           commit=True, backend="", start_delivery_time=None, end_delivery_time=None):
     """
         A function to create smses from supplied keyword arguments.
     """
@@ -29,7 +29,9 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
     sms = SMS(
         to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend,
-        description=description
+        description=description,
+        start_delivery_time=start_delivery_time,
+        end_delivery_time=end_delivery_time,
     )
 
     if commit:
@@ -60,9 +62,23 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
 
 def get_queued():
     limit = settings.SMS_ENGINE.get('BATCH_SIZE', 50)
-    return SMS.objects.filter(status=STATUS.queued) \
-        .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))\
-        .order_by('-priority')[:limit]
+
+    try:
+        now = timezone.localtime()
+    except ValueError:
+        now = timezone.now()
+
+    # All queued SMS
+    sms_list = SMS.objects.filter(status=STATUS.queued)\
+        .filter(Q(scheduled_time__lte=now) | Q(scheduled_time=None))
+
+    # Filter delivery time, if Provided
+    sms_list = sms_list.filter(
+        Q(start_delivery_time=None, end_delivery_time=None) |
+        Q(start_delivery_time__lte=now.time(), end_delivery_time__gte=now.time())
+    ).order_by('-priority', 'id')[:limit]
+
+    return sms_list
 
 
 def send_queued(processes=1, log_level=None):
