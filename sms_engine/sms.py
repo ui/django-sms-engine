@@ -83,8 +83,8 @@ def get_queued():
 
     # Filter delivery time, if Provided
     sms_list = sms_list.filter(
-        Q(start_delivery_time=None, end_delivery_time=None) |
-        Q(start_delivery_time__lte=now.time(), end_delivery_time__gte=now.time())
+        Q(start_of_delivery_window=None, end_of_delivery_window=None) |
+        Q(start_of_delivery_window__lte=now.time(), end_of_delivery_window__gte=now.time())
     ).order_by('-priority', 'id')[:limit]
 
     return sms_list
