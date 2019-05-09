@@ -1,3 +1,4 @@
+from datetime import time
 from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -31,6 +32,13 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
     if delivery_window:
         start = delivery_window[0]
         end = delivery_window[1]
+
+        # Validate start + end
+        if type(start) != time or type(end) != time:
+            raise ValueError('start/end is not a valid time type')
+
+        if start >= end:
+            raise ValueError('`start` must be earlier than `end`')
     else:
         start, end = (None, None)
 

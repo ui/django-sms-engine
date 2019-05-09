@@ -23,7 +23,6 @@ class SMSTest(TestCase):
 
         # 10 AM
         SMS.objects.all().delete()
-        print("=================")
         with freeze_time("2000-1-1 03:00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
@@ -86,11 +85,39 @@ class SMSTest(TestCase):
         self.assertEqual(sms.priority, PRIORITY.medium)
         # if priority != now, default status is set as queued
         self.assertEqual(sms.status, STATUS.queued)
+        self.assertEqual(sms.start_of_delivery_window, None)
+        self.assertEqual(sms.end_of_delivery_window, None)
 
         self.assertRaises(
             ValueError, create_sms, to="+62800000000001", message="Test",
             backend="unavailable_backends"
         )
+
+        # Wrong format
+        self.assertRaises(
+            ValueError, create_sms, to="+62800000000001", message="Test",
+            backend="dummy", delivery_window=(None, 1)
+        )
+
+        # Start bigger than end
+        self.assertRaises(
+            ValueError, create_sms, to="+62800000000001", message="Test",
+            backend="dummy", delivery_window=(time(20, 0), time(10, 0))
+        )
+
+        create_sms(to="+62800000000002", message="Test", backend='dummy',
+                   delivery_window=(time(10, 0), time(20, 0)))
+
+        sms = SMS.objects.latest('id')
+        self.assertEqual(sms.to, '+62800000000002')
+        self.assertEqual(sms.message, 'Test')
+
+        # default priority is medium
+        self.assertEqual(sms.priority, PRIORITY.medium)
+        # if priority != now, default status is set as queued
+        self.assertEqual(sms.status, STATUS.queued)
+        self.assertEqual(sms.start_of_delivery_window, time(10, 0))
+        self.assertEqual(sms.end_of_delivery_window, time(20, 0))
 
     @patch('sms_engine.models.SMS.dispatch')
     def test_sms_send(self, mock):
