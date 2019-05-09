@@ -38,8 +38,8 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
         to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend,
         description=description,
-        start_delivery_time=start,
-        end_delivery_time=end,
+        start_of_delivery_window=start,
+        end_of_delivery_window=end,
     )
 
     if commit:

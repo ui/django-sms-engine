@@ -12,31 +12,39 @@ from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk, g
 
 class SMSTest(TestCase):
 
-    def test_get_queued_sms_respecting_delivery_window(self):
+    def test_delivery_window(self):
 
         # 7 AM
         with freeze_time("2000-1-1 00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              start_delivery_time=time(10, 0), end_delivery_time=time(22, 0))
+                              delivery_window=(time(10, 0), time(22, 0)))
             self.assertEqual([sms1], list(get_queued()))
+
+        # 10 AM
+        SMS.objects.all().delete()
+        with freeze_time("2000-1-1 03:00", tz_offset=7):
+            sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
+            sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
+                              delivery_window=(time(10, 0), time(22, 0)))
+            self.assertEqual([sms1, sms2], list(get_queued()))
 
         # 7 AM
         SMS.objects.all().delete()
         with freeze_time("2000-1-1 00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              start_delivery_time=time(7, 1), end_delivery_time=time(22, 0))
+                              delivery_window=(time(7, 1), time(22, 0)))
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              start_delivery_time=time(7, 0), end_delivery_time=time(22, 0))
+                              delivery_window=(time(7, 0), time(22, 0)))
             self.assertEqual([sms2], list(get_queued()))
 
         # Every combination of these case is valid
         SMS.objects.all().delete()
         with freeze_time("2000-1-1 00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              start_delivery_time=time(6, 0), end_delivery_time=time(22, 0))
+                              delivery_window=(time(6, 0), time(22, 0)))
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              start_delivery_time=time(7, 0), end_delivery_time=time(22, 0))
+                              delivery_window=(time(7, 0), time(22, 0)))
             sms3 = create_sms(to="+62800000000001", message="Test", backend='dummy')
             sms4 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               scheduled_time=timezone.localtime() - timedelta(minutes=1))
@@ -47,18 +55,19 @@ class SMSTest(TestCase):
             SMS.objects.all().delete()
             with freeze_time("2000-1-1 00:00", tz_offset=7):
                 sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  start_delivery_time=time(6, 0), end_delivery_time=time(22, 0))
+                                  delivery_window=(time(6, 0), time(22, 0)))
                 sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  start_delivery_time=time(7, 0), end_delivery_time=time(22, 0))
+                                  delivery_window=(time(7, 0), time(22, 0)))
                 sms3 = create_sms(to="+62800000000001", message="Test", backend='dummy')
                 sms4 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                                   scheduled_time=timezone.now() - timedelta(minutes=1))
 
                 # Window stil in 2 hours, should be excluded
                 sms5 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  start_delivery_time=time(9, 0), end_delivery_time=time(22, 0))
+                                  delivery_window=(time(9, 0), time(22, 0)))
 
                 self.assertEqual([sms1, sms2, sms3, sms4], list(get_queued()))
+                self.assertNotIn(sms5, get_queued())
 
     def test_get_queued_sms_respecting_priority(self):
         sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
