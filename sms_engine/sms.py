@@ -16,9 +16,11 @@ logger = setup_loghandlers("INFO")
 
 
 def create(to=None, message="", description="", scheduled_time=None, priority=None,
-           commit=True, backend="", start_delivery_time=None, end_delivery_time=None):
+           commit=True, backend="", delivery_window=None):
     """
         A function to create smses from supplied keyword arguments.
+
+        delivery_window - Tuple representing start and end of delivery time
     """
     priority = parse_priority(priority)
     status = None if priority == PRIORITY.now else STATUS.queued
@@ -30,8 +32,8 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
         to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend,
         description=description,
-        start_delivery_time=start_delivery_time,
-        end_delivery_time=end_delivery_time,
+        start_delivery_time=delivery_window[0],
+        end_delivery_time=delivery_window[1],
     )
 
     if commit:
