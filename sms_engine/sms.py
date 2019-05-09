@@ -28,12 +28,18 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
     if backend not in get_available_backends().keys():
         raise ValueError('%s is not a valid backend alias' % backend)
 
+    if delivery_window:
+        start = delivery_window[0]
+        end = delivery_window[1]
+    else:
+        start, end = (None, None)
+
     sms = SMS(
         to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend,
         description=description,
-        start_delivery_time=delivery_window[0],
-        end_delivery_time=delivery_window[1],
+        start_delivery_time=start,
+        end_delivery_time=end,
     )
 
     if commit:
@@ -67,7 +73,7 @@ def get_queued():
 
     try:
         now = timezone.localtime()
-    except ValueError:
+    except (ValueError, TypeError):
         now = timezone.now()
 
     # All queued SMS
