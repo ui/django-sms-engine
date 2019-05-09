@@ -72,7 +72,7 @@ def get_queued():
     limit = settings.SMS_ENGINE.get('BATCH_SIZE', 50)
 
     try:
-        now = timezone.localtime()
+        now = timezone.localtime(timezone.now())
     # Python 2 / 3 throw different errors
     except (ValueError, TypeError):
         now = timezone.now()

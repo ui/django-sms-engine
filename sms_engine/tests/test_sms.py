@@ -15,7 +15,7 @@ class SMSTest(TestCase):
     def test_delivery_window(self):
 
         # 7 AM
-        with freeze_time("2000-1-1 00:00", tz_offset=7):
+        with freeze_time("2000-1-1 00:00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               delivery_window=(time(10, 0), time(22, 0)))
@@ -23,7 +23,8 @@ class SMSTest(TestCase):
 
         # 10 AM
         SMS.objects.all().delete()
-        with freeze_time("2000-1-1 03:00", tz_offset=7):
+        print("=================")
+        with freeze_time("2000-1-1 03:00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               delivery_window=(time(10, 0), time(22, 0)))
@@ -31,7 +32,7 @@ class SMSTest(TestCase):
 
         # 7 AM
         SMS.objects.all().delete()
-        with freeze_time("2000-1-1 00:00", tz_offset=7):
+        with freeze_time("2000-1-1 00:00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               delivery_window=(time(7, 1), time(22, 0)))
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
@@ -40,20 +41,20 @@ class SMSTest(TestCase):
 
         # Every combination of these case is valid
         SMS.objects.all().delete()
-        with freeze_time("2000-1-1 00:00", tz_offset=7):
+        with freeze_time("2000-1-1 00:00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               delivery_window=(time(6, 0), time(22, 0)))
             sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               delivery_window=(time(7, 0), time(22, 0)))
             sms3 = create_sms(to="+62800000000001", message="Test", backend='dummy')
             sms4 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              scheduled_time=timezone.localtime() - timedelta(minutes=1))
+                              scheduled_time=timezone.localtime(timezone.now()) - timedelta(minutes=1))
             self.assertEqual([sms1, sms2, sms3, sms4], list(get_queued()))
 
         # Make sure if timezone is not used, it does not fail
         with override_settings(USE_TZ=False):
             SMS.objects.all().delete()
-            with freeze_time("2000-1-1 00:00", tz_offset=7):
+            with freeze_time("2000-1-1 00:00:00", tz_offset=7):
                 sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                                   delivery_window=(time(6, 0), time(22, 0)))
                 sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
