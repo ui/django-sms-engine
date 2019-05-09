@@ -73,6 +73,7 @@ def get_queued():
 
     try:
         now = timezone.localtime()
+    # Python 2 / 3 throw different errors
     except (ValueError, TypeError):
         now = timezone.now()
 
