@@ -34,8 +34,11 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
         end = delivery_window[1]
 
         # Validate start + end
-        if type(start) != time or type(end) != time:
+        if not isinstance(start, time) or not isinstance(end, time):
             raise ValueError('start/end is not a valid time type')
+
+        if not settings.USE_TZ:
+            raise ValueError('Delivery Window is only supported for Django settings with USE_TZ=True')
 
         if start >= end:
             raise ValueError('`start` must be earlier than `end`')
@@ -57,7 +60,7 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
 
 
 def send(to=None, message="", description="", scheduled_time=None, priority=None,
-         commit=True, backend="", log_level=None):
+         commit=True, backend="", log_level=None, delivery_window=None):
 
     priority = parse_priority(priority)
 
@@ -68,7 +71,7 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
         raise ValueError("send_many() can't be used with priority = 'now'")
 
     sms = create(to, message, description, scheduled_time,
-                 priority, commit, backend)
+                 priority, commit, backend, delivery_window=delivery_window)
 
     if priority == PRIORITY.now:
         sms.dispatch(log_level=log_level)

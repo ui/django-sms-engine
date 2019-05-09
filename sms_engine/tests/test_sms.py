@@ -13,23 +13,23 @@ from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk, g
 class SMSTest(TestCase):
 
     def test_delivery_window(self):
+        sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
+        sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
+                          delivery_window=(time(10, 0), time(22, 0)))
 
-        # 7 AM
+        # 7 AM, 07:00+7
         with freeze_time("2000-1-1 00:00:00", tz_offset=7):
-            sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
-            sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              delivery_window=(time(10, 0), time(22, 0)))
             self.assertEqual([sms1], list(get_queued()))
 
-        # 10 AM
-        SMS.objects.all().delete()
+        # 10 AM, 10:00+7
         with freeze_time("2000-1-1 03:00:00", tz_offset=7):
-            sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
-            sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                              delivery_window=(time(10, 0), time(22, 0)))
             self.assertEqual([sms1, sms2], list(get_queued()))
 
-        # 7 AM
+        # 11 PM, 23:00+7
+        with freeze_time("2000-1-1 16:00:00", tz_offset=7):
+            self.assertEqual([sms1], list(get_queued()))
+
+        # 7 AM, 07:00
         SMS.objects.all().delete()
         with freeze_time("2000-1-1 00:00:00", tz_offset=7):
             sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
@@ -49,25 +49,6 @@ class SMSTest(TestCase):
             sms4 = create_sms(to="+62800000000001", message="Test", backend='dummy',
                               scheduled_time=timezone.localtime(timezone.now()) - timedelta(minutes=1))
             self.assertEqual([sms1, sms2, sms3, sms4], list(get_queued()))
-
-        # Make sure if timezone is not used, it does not fail
-        with override_settings(USE_TZ=False):
-            SMS.objects.all().delete()
-            with freeze_time("2000-1-1 00:00:00", tz_offset=7):
-                sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  delivery_window=(time(6, 0), time(22, 0)))
-                sms2 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  delivery_window=(time(7, 0), time(22, 0)))
-                sms3 = create_sms(to="+62800000000001", message="Test", backend='dummy')
-                sms4 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  scheduled_time=timezone.now() - timedelta(minutes=1))
-
-                # Window stil in 2 hours, should be excluded
-                sms5 = create_sms(to="+62800000000001", message="Test", backend='dummy',
-                                  delivery_window=(time(9, 0), time(22, 0)))
-
-                self.assertEqual([sms1, sms2, sms3, sms4], list(get_queued()))
-                self.assertNotIn(sms5, get_queued())
 
     def test_get_queued_sms_respecting_priority(self):
         sms1 = create_sms(to="+62800000000001", message="Test", backend='dummy')
@@ -118,6 +99,16 @@ class SMSTest(TestCase):
         self.assertEqual(sms.status, STATUS.queued)
         self.assertEqual(sms.start_of_delivery_window, time(10, 0))
         self.assertEqual(sms.end_of_delivery_window, time(20, 0))
+
+        with override_settings(USE_TZ=False):
+            # This works
+            create_sms(to="+62800000000002", message="Test", backend='dummy')
+
+            # This is not supported currently
+            self.assertRaises(
+                ValueError, create_sms, to="+62800000000001", message="Test",
+                backend="dummy", delivery_window=(time(10, 0), time(20, 0))
+            )
 
     @patch('sms_engine.models.SMS.dispatch')
     def test_sms_send(self, mock):
