@@ -39,3 +39,5 @@ ghostdriver.log
 
 ## sqlite
 *.sqlite3
+
+.mypy_cache/*

@@ -68,3 +68,6 @@ TEMPLATES = [
         },
     },
 ]
+
+USE_TZ = True
+TIME_ZONE = "Asia/Jakarta"
