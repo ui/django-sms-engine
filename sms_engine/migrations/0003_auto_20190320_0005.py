@@ -14,12 +14,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='sms',
-            name='end_delivery_time',
+            name='end_of_delivery_window',
             field=models.TimeField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name='sms',
-            name='start_delivery_time',
+            name='start_of_delivery_window',
             field=models.TimeField(blank=True, null=True),
         ),
         migrations.AlterField(
