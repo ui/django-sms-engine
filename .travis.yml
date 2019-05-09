@@ -13,7 +13,7 @@ env:
   - DJANGO=1.11
 
 install:
-  - pip install "Django>=$DJANGO,<${DJANGO}.99" requests twilio==3.6.6 mock
+  - pip install "Django>=$DJANGO,<${DJANGO}.99" requests twilio==3.6.6 mock freezegun
 
 script:
 - "`which django-admin.py` test sms_engine --settings=sms_engine.test_settings --pythonpath=."
