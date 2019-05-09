@@ -38,7 +38,7 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
             raise ValueError('start/end is not a valid time type')
 
         if not settings.USE_TZ:
-            raise ValueError('Delivery Window is only supported for Django settings with USE_TZ=True')
+            raise ValueError('delivery_window is only supported for projects with `USE_TZ = True`')
 
         if start >= end:
             raise ValueError('`start` must be earlier than `end`')
