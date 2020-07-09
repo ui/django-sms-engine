@@ -2,6 +2,9 @@
 from setuptools import setup
 
 
+tests_require = ['freezegun']
+
+
 setup(
     name='django-sms-engine',
     version='v0.0.1',
@@ -16,6 +19,8 @@ setup(
     include_package_data=True,
     package_data={'': ['README.rst']},
     install_requires=['django>=1.8', 'requests', 'twilio==6.34.0', 'mock'],
+    tests_require=tests_require,
+    extras_require={'test': tests_require},
     classifiers=[
         'Development Status :: 1 - Beta/Unstable',
         'Environment :: Web Environment',

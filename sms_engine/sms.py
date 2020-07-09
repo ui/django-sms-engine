@@ -1,3 +1,4 @@
+from datetime import time
 from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -16,9 +17,11 @@ logger = setup_loghandlers("INFO")
 
 
 def create(to=None, message="", description="", scheduled_time=None, priority=None,
-           commit=True, backend=""):
+           commit=True, backend="", delivery_window=None):
     """
         A function to create smses from supplied keyword arguments.
+
+        delivery_window - Tuple representing start and end of delivery time
     """
     priority = parse_priority(priority)
     status = None if priority == PRIORITY.now else STATUS.queued
@@ -26,10 +29,28 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
     if backend not in get_available_backends().keys():
         raise ValueError('%s is not a valid backend alias' % backend)
 
+    if delivery_window:
+        start = delivery_window[0]
+        end = delivery_window[1]
+
+        # Validate start + end
+        if not isinstance(start, time) or not isinstance(end, time):
+            raise ValueError('start/end is not a valid time type')
+
+        if not settings.USE_TZ:
+            raise ValueError('delivery_window is only supported for projects with `USE_TZ = True`')
+
+        if start >= end:
+            raise ValueError('`start` must be earlier than `end`')
+    else:
+        start, end = (None, None)
+
     sms = SMS(
         to=to, message=message, scheduled_time=scheduled_time,
         status=status, priority=priority, backend_alias=backend,
-        description=description
+        description=description,
+        start_of_delivery_window=start,
+        end_of_delivery_window=end,
     )
 
     if commit:
@@ -39,7 +60,7 @@ def create(to=None, message="", description="", scheduled_time=None, priority=No
 
 
 def send(to=None, message="", description="", scheduled_time=None, priority=None,
-         commit=True, backend="", log_level=None):
+         commit=True, backend="", log_level=None, delivery_window=None):
 
     priority = parse_priority(priority)
 
@@ -50,7 +71,7 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
         raise ValueError("send_many() can't be used with priority = 'now'")
 
     sms = create(to, message, description, scheduled_time,
-                 priority, commit, backend)
+                 priority, commit, backend, delivery_window=delivery_window)
 
     if priority == PRIORITY.now:
         sms.dispatch(log_level=log_level)
@@ -60,9 +81,24 @@ def send(to=None, message="", description="", scheduled_time=None, priority=None
 
 def get_queued():
     limit = settings.SMS_ENGINE.get('BATCH_SIZE', 50)
-    return SMS.objects.filter(status=STATUS.queued) \
-        .filter(Q(scheduled_time__lte=timezone.now()) | Q(scheduled_time=None))\
-        .order_by('-priority')[:limit]
+
+    try:
+        now = timezone.localtime(timezone.now())
+    # Python 2 / 3 throw different errors
+    except (ValueError, TypeError):
+        now = timezone.now()
+
+    # All queued SMS
+    sms_list = SMS.objects.filter(status=STATUS.queued)\
+        .filter(Q(scheduled_time__lte=now) | Q(scheduled_time=None))
+
+    # Filter delivery time, if Provided
+    sms_list = sms_list.filter(
+        Q(start_of_delivery_window=None, end_of_delivery_window=None) |
+        Q(start_of_delivery_window__lte=now.time(), end_of_delivery_window__gte=now.time())
+    ).order_by('-priority', 'id')[:limit]
+
+    return sms_list
 
 
 def send_queued(processes=1, log_level=None):
