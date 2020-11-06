@@ -31,7 +31,7 @@ def get_sms_usage(start_date: str, end_date: str) -> dict:
 
     smss = SMS.objects.filter(scheduled_time__range=[start_date, end_date])
 
-    result_sms_usage: dict = {}
+    result_sms_usage = {}
 
     for sms in smss:
         if sms.backend_alias not in result_sms_usage:
