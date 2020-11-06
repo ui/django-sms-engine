@@ -3,7 +3,7 @@ from .models import PRIORITY, SMS
 from .settings import get_default_priority
 
 
-def parse_priority(priority: str) -> str:
+def parse_priority(priority):
     if priority is None:
         priority = get_default_priority()
     # If priority is given as a string, returns the enum representation
@@ -16,7 +16,7 @@ def parse_priority(priority: str) -> str:
     return priority
 
 
-def split_smss(smss: list, split_count: int = 1) -> list:
+def split_smss(smss, split_count= 1):
     # Group smss into X sublists
     # taken from http://www.garyrobinson.net/2008/04/splitting-a-pyt.html
     if list(smss):
@@ -24,7 +24,7 @@ def split_smss(smss: list, split_count: int = 1) -> list:
     return []
 
 
-def get_sms_usage(start_date: str, end_date: str) -> dict:
+def get_sms_usage(start_date, end_date):
     if start_date > end_date:
         raise ValueError('`start` must be earlier than `end`')
 
