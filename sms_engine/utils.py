@@ -2,8 +2,6 @@ from .compat import string_types
 from .models import PRIORITY, SMS
 from .settings import get_default_priority
 
-from typing import Any
-
 
 def parse_priority(priority: str) -> str:
     if priority is None:
@@ -18,11 +16,12 @@ def parse_priority(priority: str) -> str:
     return priority
 
 
-def split_smss(smss: list, split_count: int = 1) -> Any:
+def split_smss(smss: list, split_count: int = 1) -> list:
     # Group smss into X sublists
     # taken from http://www.garyrobinson.net/2008/04/splitting-a-pyt.html
     if list(smss):
         return [smss[i::split_count] for i in range(split_count)]
+    return []
 
 
 def get_sms_usage(start_date: str, end_date: str) -> dict:
