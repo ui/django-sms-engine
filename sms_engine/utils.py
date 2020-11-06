@@ -21,7 +21,6 @@ def split_smss(smss, split_count= 1):
     # taken from http://www.garyrobinson.net/2008/04/splitting-a-pyt.html
     if list(smss):
         return [smss[i::split_count] for i in range(split_count)]
-    return []
 
 
 def get_sms_usage(start_date, end_date):
