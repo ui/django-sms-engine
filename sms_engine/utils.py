@@ -29,9 +29,9 @@ def get_sms_usage(start_date, end_date):
     if start_date > end_date:
         raise ValueError('`start` must be earlier than `end`')
 
-    messages = SMS.objects.filter(created__range=[start_date, end_date])
+    messages = SMS.objects.filter(created__range=[start_date, end_date]).only("status", "backend_alias")
 
-    result_sms_usage = defaultdict(lambda: "Not Present")
+    result_sms_usage = defaultdict(lambda: {"total": 0, "succes": 0, "failed": 0})
 
     for message in messages:
         if message.backend_alias not in result_sms_usage:
