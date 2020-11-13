@@ -34,31 +34,10 @@ def get_monthly_csv_raw_data(start: date, end: date) -> StringIO:
 
     csv_writer = csv.writer(csv_buffer)
     csv_writer.writerow([
-        'Destination', 'Content', 'Description', 'Backend'
+        'Destination', 'Content', 'Description', 'Status', 'Backend'
     ])
     for sms in smses:
         csv_writer.writerow([
-            sms.to, sms.message, sms.description, sms.backend_alias
+            sms.to, sms.message, sms.description, sms.get_status_display(), sms.backend_alias
         ])
     return csv_buffer
-
-
-def parse_sms_raw_data_csv(file: StringIO, otp_descriptions: list) -> Tuple[StringIO, StringIO]:
-    # count otp and non otp sms
-    reader = csv.DictReader(file)
-
-    otp_csv_buffer = StringIO()
-    non_otp_csv_buffer = StringIO()
-
-    otp_sms_writer = csv.writer(otp_csv_buffer)
-    otp_sms_writer.writerow(reader.fieldnames)
-
-    non_otp_sms_writer = csv.writer(non_otp_csv_buffer)
-    non_otp_sms_writer.writerow(reader.fieldnames)
-
-    for row in reader:
-        if row['Description'] in otp_descriptions:
-            otp_sms_writer.writerow(row.values())
-        else:
-            non_otp_sms_writer.writerow(row.values())
-    return otp_csv_buffer, non_otp_csv_buffer
