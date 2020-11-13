@@ -28,7 +28,7 @@ def split_smss(smss, split_count=1):
         return [smss[i::split_count] for i in range(split_count)]
 
 
-def get_monthly_csv_raw_data(start: date, end: date) -> StringIO:
+def get_monthly_csv_raw_data(start, end):
     smses = SMS.objects.filter(created__date__range=(start, end))
     csv_buffer = StringIO()
 
