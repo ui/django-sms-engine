@@ -1,7 +1,6 @@
 import csv
 from datetime import date
 from io import StringIO
-from typing import Tuple
 
 from .compat import string_types
 from .models import PRIORITY, SMS
