@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls admin_static admin_modify %}
+
+{% block content %}
+<form action="." enctype="db_personal/x-www-form-urlencoded" method="POST">>
+    <ul>
+        {{ form.as_ul }}
+    </ul>
+    {% csrf_token %}
+</form>
+{% endblock %}
