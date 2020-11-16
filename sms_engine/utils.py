@@ -1,8 +1,6 @@
 import csv
-import zipfile
-from io import StringIO, BytesIO
-
-from django.http import HttpResponse
+from datetime import date
+from io import StringIO
 
 from .compat import string_types
 from .models import PRIORITY, SMS
@@ -42,18 +40,3 @@ def get_monthly_csv_raw_data(start, end):
             sms.to, sms.message, sms.description, sms.get_status_display(), sms.backend_alias
         ])
     return csv_buffer
-
-
-def generate_zip_response(csv_buffer, file_name):
-    zip_buffer = BytesIO()
-
-    with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr(f'{file_name}.csv', csv_buffer.getvalue())
-    return zip_response(zip_buffer, file_name)
-
-
-def zip_response(zip_buffer, file_name):
-    response = HttpResponse(zip_buffer.getvalue(),
-                            content_type="application/x-zip-compressed")
-    response['Content-Disposition'] = 'attachment; filename=%s.zip' % file_name.replace(" ", "-")
-    return response
