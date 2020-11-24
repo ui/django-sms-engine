@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from .logutils import setup_loghandlers
 from .models import SMS, PRIORITY, STATUS, Log
-from .settings import get_log_level, get_available_backends
+from .settings import get_log_level, get_available_backends, get_router
 from .utils import parse_priority, split_smss
 
 
@@ -206,3 +206,13 @@ def _send_bulk(smss, uses_multiprocessing=True, log_level=None, threads=4):
                 (sms_count, sent_count, failed_count))
 
     return (sent_count, failed_count)
+
+
+def send_sms(number, content, description="", scheduled_time=None, priority=None,
+             commit=True, backend=None, log_level=None, delivery_window=None):
+    if not backend:
+        router = get_router()
+        backend = router(number, content)
+
+    return send(number, content, description, scheduled_time, priority,
+                commit, backend, log_level, delivery_window)

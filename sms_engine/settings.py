@@ -54,3 +54,13 @@ def get_default_priority():
 
 def get_log_level():
     return get_config().get('LOG_LEVEL', 1)
+
+
+def get_router():
+    if hasattr(settings, 'SMS_ENGINE_ROUTER'):
+        router = import_attribute(settings.SMS_ENGINE_ROUTER)
+        if not callable(router):
+            raise ImproperlyConfigured('SMS_ENGINE_ROUTER must be callable')
+        return router
+    else:
+        return None
