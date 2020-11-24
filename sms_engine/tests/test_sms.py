@@ -155,10 +155,10 @@ class SMSTest(TestCase):
         )
 
     def test_send_sms_with_router(self):
-        send_sms_with_router(to="+62800000000001", message="Test OTP")
+        send_sms_with_router(number="+62800000000001", content="Test OTP")
         sms = SMS.objects.latest('id')
         self.assertEqual(sms.backend_alias, 'default')
 
-        send_sms_with_router(to="+62800000000001", message="Test sms")
+        send_sms_with_router(number="+62800000000001", content="Test sms")
         sms = SMS.objects.latest('id')
         self.assertEqual(sms.backend_alias, 'dummy')
