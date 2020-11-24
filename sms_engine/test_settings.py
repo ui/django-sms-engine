@@ -39,6 +39,8 @@ INSTALLED_APPS = (
     'sms_engine',
 )
 
+SMS_ENGINE_ROUTER = 'sms_engine.test_router.get_router'
+
 SECRET_KEY = 'a'
 
 ROOT_URLCONF = 'sms_engine.test_urls'

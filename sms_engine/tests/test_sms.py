@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from sms_engine.models import SMS, PRIORITY, STATUS, Log
-from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk, get_queued
+from sms_engine.sms import create as create_sms, send as send_sms, _send_bulk, get_queued, send_sms as send_sms_with_router
 
 
 class SMSTest(TestCase):
@@ -153,3 +153,12 @@ class SMSTest(TestCase):
         self.assertEqual(
             Log.objects.filter(status=STATUS.sent).count(), 24
         )
+
+    def test_send_sms_with_router()
+        send_sms_with_router(to="+62800000000001", message="Test OTP")
+        sms = SMS.objects.latest('id')
+        self.assertEqual(sms.backend_alias, 'default')
+
+        send_sms_with_router(to="+62800000000001", message="Test sms")
+        sms = SMS.objects.latest('id')
+        self.assertEqual(sms.backend_alias, 'dummy')
