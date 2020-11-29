@@ -34,16 +34,10 @@ def get_sms_usage(start_date, end_date):
     result_sms_usage = defaultdict(lambda: {"total": 0, "succes": 0, "failed": 0})
 
     for message in messages:
-        if message.backend_alias not in result_sms_usage:
-            if message.status == STATUS.sent:
-                result_sms_usage[message.backend_alias] = {"total": 1, "succes": 1, "failed": 0}
-            else:
-                result_sms_usage[message.backend_alias] = {"total": 1, "succes": 0, "failed": 1}
+        result_sms_usage[message.backend_alias]["total"] += 1
+        if message.status == STATUS.sent:
+            result_sms_usage[message.backend_alias]["succes"] += 1
         else:
-            result_sms_usage[message.backend_alias]["total"] += 1
-            if message.status == STATUS.sent:
-                result_sms_usage[message.backend_alias]["succes"] += 1
-            else:
-                result_sms_usage[message.backend_alias]["failed"] += 1
+            result_sms_usage[message.backend_alias]["failed"] += 1
 
     return result_sms_usage
