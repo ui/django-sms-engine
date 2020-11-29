@@ -3,7 +3,10 @@ from django.test import TestCase
 from sms_engine.sms import create as create_sms
 from sms_engine.utils import get_sms_usage
 
+from freezegun import freeze_time
 
+
+@freeze_time("2020-11-05")
 class UtilsTest(TestCase):
 
     def test_get_sms_usage(self):
