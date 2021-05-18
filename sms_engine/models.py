@@ -3,8 +3,6 @@ import random
 from collections import namedtuple
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import text_type
 from django.utils.translation import ugettext_lazy as _
 
 from .settings import get_log_level, get_backend
@@ -14,7 +12,6 @@ PRIORITY = namedtuple('PRIORITY', 'low medium high now')._make(range(4))
 STATUS = namedtuple('STATUS', 'sent failed queued')._make(range(3))
 
 
-@python_2_unicode_compatible
 class SMS(models.Model):
     """
         A model to hold SMS information
@@ -89,7 +86,6 @@ class SMS(models.Model):
         return status
 
 
-@python_2_unicode_compatible
 class Log(models.Model):
     """
     A model to record sending sms sending activities.
@@ -108,10 +104,9 @@ class Log(models.Model):
         app_label = 'sms_engine'
 
     def __str__(self):
-        return text_type(self.date)
+        return str(self.date)
 
 
-@python_2_unicode_compatible
 class Backend(models.Model):
     alias = models.CharField(max_length=255)
     PRIORITY = namedtuple('PRIORITY', 'high normal low')._make(range(3))
