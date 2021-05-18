@@ -3,8 +3,7 @@ import random
 from collections import namedtuple
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import text_type
+from django.utils.six import text_type, python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from .settings import get_log_level, get_backend
