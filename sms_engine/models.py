@@ -3,7 +3,12 @@ import random
 from collections import namedtuple
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+
+try:
+    from django.utils.translation import ugettext_lazy as _
+except ImportError:
+    # handle ugettext_lazy deprecation in django 4
+    from django.utils.translation import gettext_lazy as _
 
 from .settings import get_log_level, get_backend
 
